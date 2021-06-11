@@ -87,6 +87,16 @@ struct Player<'a> {
     hat_slow_counter: i32,
 }
 
+fn ping_pong(i: i32, n: i32) -> i32 {
+    let cycle = 2 * (n - 1);
+    let i = i % cycle;
+    if i >= n {
+        cycle - i
+    } else {
+        i
+    }
+}
+
 impl<'a> Player<'a> {
     fn new(controller: &'a ObjectControl) -> Self {
         let mut hat = Entity::new(controller);
@@ -113,7 +123,7 @@ impl<'a> Player<'a> {
         }
     }
 
-    fn update_frame(&mut self, input: &ButtonController) {
+    fn update_frame(&mut self, input: &ButtonController, timer: i32) {
         // throw or recall
         if input.is_just_pressed(Button::A) {
             if self.hat_state == HatState::OnHead {
@@ -135,6 +145,34 @@ impl<'a> Player<'a> {
             let gravity = gravity / 16;
             self.wizard.velocity += gravity;
             self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 64;
+
+            if self.wizard.velocity.x.abs() != 0.into() {
+                let offset = (8 * ping_pong(timer / 32, 4)) as u16;
+                self.wizard
+                    .sprite
+                    .set_tile_id(object_tiles::WIZARD_TILE_START + offset);
+                self.hat
+                    .sprite
+                    .set_tile_id(object_tiles::HAT_TILE_START + offset);
+            } else {
+                self.wizard
+                    .sprite
+                    .set_tile_id(object_tiles::WIZARD_TILE_START);
+                self.hat.sprite.set_tile_id(object_tiles::HAT_TILE_START);
+            }
+
+            match input.x_tri() {
+                agb::input::Tri::Negative => {
+                    self.wizard.sprite.set_hflip(true);
+                    self.hat.sprite.set_hflip(true);
+                }
+                agb::input::Tri::Positive => {
+                    self.wizard.sprite.set_hflip(false);
+                    self.hat.sprite.set_hflip(false);
+                }
+                _ => {}
+            }
+
             self.wizard.velocity = self.wizard.velocity * 62 / 64;
             self.wizard.update_position();
             self.wizard.position.y = self
@@ -192,6 +230,7 @@ impl<'a> Player<'a> {
 }
 
 struct PlayingLevel<'a> {
+    timer: i32,
     background: Map<'a>,
     input: ButtonController,
     player: Player<'a>,
@@ -209,6 +248,7 @@ impl<'a> PlayingLevel<'a> {
         background.show();
 
         PlayingLevel {
+            timer: 0,
             background: Map {
                 layer: background,
                 map: level,
@@ -221,9 +261,10 @@ impl<'a> PlayingLevel<'a> {
     }
 
     fn update_frame(&mut self) {
+        self.timer += 1;
         self.input.update();
 
-        self.player.update_frame(&self.input);
+        self.player.update_frame(&self.input, self.timer);
         self.player.wizard.commit_position(self.background.position);
         self.player.hat.commit_position(self.background.position);
     }
