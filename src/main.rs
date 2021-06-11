@@ -146,19 +146,14 @@ impl<'a> Player<'a> {
             self.wizard.velocity += gravity;
             self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 64;
 
-            if self.wizard.velocity.x.abs() != 0.into() {
-                let offset = (8 * ping_pong(timer / 32, 4)) as u16;
+            if self.wizard.velocity.x.abs() > FixedNumberType::new(1) / 16 {
+                let offset = (8 * ping_pong(timer / 16, 4)) as u16;
                 self.wizard
                     .sprite
                     .set_tile_id(object_tiles::WIZARD_TILE_START + offset);
                 self.hat
                     .sprite
                     .set_tile_id(object_tiles::HAT_TILE_START + offset);
-            } else {
-                self.wizard
-                    .sprite
-                    .set_tile_id(object_tiles::WIZARD_TILE_START);
-                self.hat.sprite.set_tile_id(object_tiles::HAT_TILE_START);
             }
 
             match input.x_tri() {
