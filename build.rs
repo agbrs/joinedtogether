@@ -34,7 +34,9 @@ mod tiled_export {
         const COLLISION_TILE: i32 = 1;
         const KILL_TILE: i32 = 2;
 
-        let file = File::open("map/tilemap.json")?;
+        let filename = "map/tilemap.json";
+        println!("cargo:rerun-if-changed={}", filename);
+        let file = File::open(filename)?;
         let reader = BufReader::new(file);
 
         let tilemap: TiledTilemap = serde_json::from_reader(reader)?;
@@ -81,7 +83,9 @@ mod tiled_export {
     }
 
     pub fn export_level(out_dir: &str, level_file: &str) -> std::io::Result<()> {
-        let file = File::open(format!("map/{}", level_file))?;
+        let filename = format!("map/{}", level_file);
+        println!("cargo:rerun-if-changed={}", filename);
+        let file = File::open(filename)?;
         let reader = BufReader::new(file);
 
         let level: TiledLevel = serde_json::from_reader(reader)?;
@@ -92,18 +96,18 @@ mod tiled_export {
         let layer_1 = level.layers[0]
             .data
             .iter()
-            .map(|id| id.to_string())
+            .map(|id| get_map_id(*id).to_string())
             .collect::<Vec<_>>()
             .join(", ");
         let layer_2 = level.layers[1]
             .data
             .iter()
-            .map(|id| id.to_string())
+            .map(|id| get_map_id(*id).to_string())
             .collect::<Vec<_>>()
             .join(", ");
 
-        writeln!(&mut writer, "pub const WIDTH: i32 = {};", level.width)?;
-        writeln!(&mut writer, "pub const HEIGHT: i32 = {};", level.height)?;
+        writeln!(&mut writer, "pub const WIDTH: u32 = {};", level.width)?;
+        writeln!(&mut writer, "pub const HEIGHT: u32 = {};", level.height)?;
         writeln!(&mut writer, "pub const TILEMAP: &[u16] = &[{}];", layer_1)?;
         writeln!(
             &mut writer,
@@ -112,6 +116,13 @@ mod tiled_export {
         )?;
 
         Ok(())
+    }
+
+    fn get_map_id(id: i32) -> i32 {
+        match id {
+            0 => 148,
+            i => i - 1,
+        }
     }
 
     #[derive(Deserialize)]

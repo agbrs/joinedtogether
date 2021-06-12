@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
 
-mod chickenmap;
-
 struct Level {
     background: &'static [u16],
     foreground: &'static [u16],
@@ -11,12 +9,25 @@ struct Level {
 }
 
 mod object_tiles {
-
     pub const WIZARD_TILE_START: u16 = 0 * 4;
     pub const WIZARD_JUMP: u16 = 4 * 4;
     pub const WIZARD_FALL_START: u16 = 5 * 4;
     pub const HAT_TILE_START: u16 = 9 * 4;
     include!(concat!(env!("OUT_DIR"), "/object_sheet.rs"));
+}
+
+mod map_tiles {
+    pub mod level1 {
+        include!(concat!(env!("OUT_DIR"), "/level1.json.rs"));
+    }
+
+    pub mod tilemap {
+        include!(concat!(env!("OUT_DIR"), "/tilemap.rs"));
+    }
+
+    pub mod tiles {
+        include!(concat!(env!("OUT_DIR"), "/tile_sheet.rs"));
+    }
 }
 
 use agb::{
@@ -321,8 +332,8 @@ pub fn main() -> ! {
     let mut tiled = agb.display.video.tiled0();
     let mut object = agb.display.object.get();
 
-    tiled.set_background_palette_raw(&chickenmap::MAP_PALETTE);
-    tiled.set_background_tilemap(0, &chickenmap::MAP_TILES);
+    tiled.set_background_palettes(&map_tiles::tiles::PALETTE_DATA);
+    tiled.set_background_tilemap(0, &map_tiles::tiles::TILE_DATA);
     tiled.set_sprite_palettes(object_tiles::PALETTE_DATA);
     tiled.set_sprite_tilemap(object_tiles::TILE_DATA);
 
@@ -332,9 +343,9 @@ pub fn main() -> ! {
 
     let mut level = PlayingLevel::open_level(
         Level {
-            background: &chickenmap::MAP_MAP,
-            foreground: &chickenmap::MAP_MAP,
-            dimensions: (32_u32, 32_u32).into(),
+            foreground: &map_tiles::level1::TILEMAP,
+            background: &map_tiles::level1::BACKGROUND,
+            dimensions: (map_tiles::level1::WIDTH, map_tiles::level1::HEIGHT).into(),
             collision: &[],
         },
         &object,
