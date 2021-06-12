@@ -62,13 +62,13 @@ impl<'a> Entity<'a> {
     }
 
     fn collision_at_point(&mut self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
-        let left = (position.x.floor() - self.collision_mask.x as i32 / 2) / 8;
-        let right = (position.x.floor() + self.collision_mask.x as i32 / 2) / 8;
-        let top = (position.y.floor() - self.collision_mask.y as i32 / 2) / 8;
-        let bottom = (position.y.floor() + self.collision_mask.y as i32 / 2) / 8;
+        let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
+        let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
+        let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
+        let bottom = (position.y + self.collision_mask.y as i32 / 2).floor() / 8;
 
-        for x in left..right {
-            for y in top..bottom {
+        for x in left..=right {
+            for y in top..=bottom {
                 if level.collides(x, y) {
                     return true;
                 }
@@ -167,8 +167,8 @@ fn ping_pong(i: i32, n: i32) -> i32 {
 
 impl<'a> Player<'a> {
     fn new(controller: &'a ObjectControl) -> Self {
-        let mut hat = Entity::new(controller, (16_u16, 16_u16).into());
-        let mut wizard = Entity::new(controller, (16_u16, 16_u16).into());
+        let mut hat = Entity::new(controller, (10_u16, 7_u16).into());
+        let mut wizard = Entity::new(controller, (6_u16, 14_u16).into());
 
         wizard.sprite.set_tile_id(object_tiles::WIZARD_TILE_START);
         hat.sprite.set_tile_id(object_tiles::HAT_TILE_START);
@@ -223,7 +223,7 @@ impl<'a> Player<'a> {
             self.wizard.velocity = self.wizard.velocity * 62 / 64;
             self.wizard.velocity = self.wizard.update_position(level);
 
-            if self.wizard.velocity.x.abs() > FixedNumberType::new(1) / 16 {
+            if self.wizard.velocity.x.abs() > 0.into() {
                 let offset = (ping_pong(timer / 16, 4)) as u16;
                 self.wizard_frame = offset as u8;
 
@@ -240,6 +240,12 @@ impl<'a> Player<'a> {
             } else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
                 // going down
                 let offset = ((timer / 8) % 4) as u16;
+                self.wizard_frame = 0;
+
+                self.wizard.sprite.set_tile_id(object_tiles::WIZARD_JUMP);
+            } else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
+                // going down
+                let offset = ((timer / 4) % 4) as u16;
                 self.wizard_frame = 0;
 
                 self.wizard
