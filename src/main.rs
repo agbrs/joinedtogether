@@ -38,6 +38,14 @@ mod object_tiles {
 }
 
 mod map_tiles {
+
+    use super::Level;
+    pub const LEVELS: &[Level] = &[level0::get_level(), level1::get_level()];
+
+    pub mod level0 {
+        include!(concat!(env!("OUT_DIR"), "/level0.json.rs"));
+    }
+
     pub mod level1 {
         include!(concat!(env!("OUT_DIR"), "/level1.json.rs"));
     }
@@ -215,7 +223,7 @@ struct Map<'a> {
     background: &'a mut Background,
     foreground: &'a mut Background,
     position: Vector2D<FixedNumberType>,
-    level: Level,
+    level: &'a Level,
 }
 
 impl<'a> Map<'a> {
@@ -515,7 +523,7 @@ enum UpdateState {
 
 impl<'a> PlayingLevel<'a> {
     fn open_level(
-        level: Level,
+        level: &'a Level,
         object_control: &'a ObjectControl,
         background: &'a mut Background,
         foreground: &'a mut Background,
@@ -651,13 +659,20 @@ pub fn main() -> ! {
     object.enable();
 
     let vblank = agb.display.vblank.get();
+    let mut current_level = 0;
 
     loop {
-        level_display::write_level(&mut world_display, 1, 1);
+        current_level %= map_tiles::LEVELS.len() as u32;
+        level_display::write_level(
+            &mut world_display,
+            current_level / 8 + 1,
+            current_level % 8 + 1,
+        );
+
         world_display.show();
 
         let mut level = PlayingLevel::open_level(
-            map_tiles::level1::get_level(),
+            &map_tiles::LEVELS[current_level as usize],
             &object,
             &mut background,
             &mut foreground,
@@ -675,7 +690,10 @@ pub fn main() -> ! {
                 UpdateState::Dead => {
                     break;
                 }
-                UpdateState::Complete => {}
+                UpdateState::Complete => {
+                    current_level += 1;
+                    break;
+                }
             }
             vblank.wait_for_VBlank();
         }
