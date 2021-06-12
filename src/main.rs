@@ -9,6 +9,10 @@ pub struct Level {
     foreground: &'static [u16],
     dimensions: Vector2D<u32>,
     collision: &'static [u32],
+
+    slimes: &'static [(i32, i32)],
+    snails: &'static [(i32, i32)],
+    start_pos: (i32, i32),
 }
 
 mod object_tiles {
@@ -288,7 +292,7 @@ fn ping_pong(i: i32, n: i32) -> i32 {
 }
 
 impl<'a> Player<'a> {
-    fn new(controller: &'a ObjectControl) -> Self {
+    fn new(controller: &'a ObjectControl, start_position: Vector2D<FixedNumberType>) -> Self {
         let mut hat = Entity::new(controller, (6_u16, 6_u16).into());
         let mut wizard = Entity::new(controller, (6_u16, 14_u16).into());
 
@@ -302,7 +306,7 @@ impl<'a> Player<'a> {
         wizard.sprite.commit();
         hat.sprite.commit();
 
-        wizard.position = (WIDTH / 2, HEIGHT / 2).into();
+        wizard.position = start_position;
 
         Player {
             wizard,
@@ -531,7 +535,18 @@ impl<'a> PlayingLevel<'a> {
         foreground.show();
 
         let mut e: [enemies::Enemy<'a>; 16] = Default::default();
-        e[0] = enemies::Enemy::new_snail(object_control, (9 * 8, 17 * 8).into());
+        let mut enemy_count = 0;
+        for &slime in level.slimes {
+            e[enemy_count] = enemies::Enemy::new_slime(object_control, slime.into());
+            enemy_count += 1;
+        }
+
+        for &snail in level.snails {
+            e[enemy_count] = enemies::Enemy::new_snail(object_control, snail.into());
+            enemy_count += 1;
+        }
+
+        let start_pos = level.start_pos.into();
 
         PlayingLevel {
             timer: 0,
@@ -541,7 +556,7 @@ impl<'a> PlayingLevel<'a> {
                 level,
                 position: (0, 0).into(),
             },
-            player: Player::new(object_control),
+            player: Player::new(object_control, start_pos),
             input,
             enemies: e,
         }
@@ -651,6 +666,10 @@ pub fn main() -> ! {
                 foreground: &map_tiles::level1::BACKGROUND,
                 dimensions: (map_tiles::level1::WIDTH, map_tiles::level1::HEIGHT).into(),
                 collision: &map_tiles::tilemap::TILE_DATA,
+
+                slimes: &map_tiles::level1::SLIMES,
+                snails: &map_tiles::level1::SNAILS,
+                start_pos: map_tiles::level1::START_POS,
             },
             &object,
             &mut background,
