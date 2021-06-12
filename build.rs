@@ -10,6 +10,7 @@ fn main() {
             .output_file(format!("{}/object_sheet.rs", out_dir).into())
             .build(),
     );
+    println!("cargo:rerun-if-changed=gfx/object_sheet.png");
 
     convert_image(
         ImageConverterConfig::builder()
@@ -19,6 +20,7 @@ fn main() {
             .output_file(format!("{}/tile_sheet.rs", out_dir).into())
             .build(),
     );
+    println!("cargo:rerun-if-changed=gfx/tile_sheet.png");
 
     tiled_export::export_tilemap(&out_dir).expect("Failed to export tilemap");
     tiled_export::export_level(&out_dir, "level1.json").expect("Failed to export level");
