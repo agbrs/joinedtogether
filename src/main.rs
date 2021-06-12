@@ -14,7 +14,10 @@ mod object_tiles {
     pub const WIZARD_TILE_START: u16 = 0 * 4;
     pub const WIZARD_JUMP: u16 = 4 * 4;
     pub const WIZARD_FALL_START: u16 = 5 * 4;
+
     pub const HAT_TILE_START: u16 = 9 * 4;
+    pub const HAT_TILE_START_SECOND: u16 = 28 * 4;
+    pub const HAT_TILE_START_THIRD: u16 = 38 * 4;
 
     pub const SLIME_IDLE_START: u16 = 19 * 4;
     pub const SLIME_JUMP_START: u16 = 20 * 4;
@@ -336,16 +339,20 @@ impl<'a> Player<'a> {
             }
         }
 
+        let hat_base_tile = match self.num_recalls {
+            0 => object_tiles::HAT_TILE_START,
+            1 => object_tiles::HAT_TILE_START_SECOND,
+            2 | _ => object_tiles::HAT_TILE_START_THIRD,
+        };
+
         match self.facing {
             agb::input::Tri::Negative => {
                 self.wizard.sprite.set_hflip(true);
-                self.hat
-                    .sprite
-                    .set_tile_id(object_tiles::HAT_TILE_START + 4 * 5);
+                self.hat.sprite.set_tile_id(hat_base_tile + 4 * 5);
             }
             agb::input::Tri::Positive => {
                 self.wizard.sprite.set_hflip(false);
-                self.hat.sprite.set_tile_id(object_tiles::HAT_TILE_START);
+                self.hat.sprite.set_tile_id(hat_base_tile);
             }
             _ => {}
         }
@@ -368,17 +375,17 @@ impl<'a> Player<'a> {
                     distance_vector / distance
                 };
 
-                let hat_sprite_offset = timer
-                    / match self.num_recalls {
-                        0 => 1,
-                        1 => 2,
-                        2 | _ => 4,
-                    }
-                    % 10;
+                let hat_sprite_divider = match self.num_recalls {
+                    0 => 1,
+                    1 => 2,
+                    2 | _ => 4,
+                };
+
+                let hat_sprite_offset = timer / hat_sprite_divider % 10;
 
                 self.hat
                     .sprite
-                    .set_tile_id(object_tiles::HAT_TILE_START + (hat_sprite_offset * 4) as u16);
+                    .set_tile_id(hat_base_tile + (hat_sprite_offset * 4) as u16);
 
                 if self.hat_slow_counter < 10 && self.hat.velocity.magnitude() < 2.into() {
                     self.hat.velocity = (0, 0).into();
@@ -403,7 +410,7 @@ impl<'a> Player<'a> {
             HatState::WizardTowards => {
                 self.hat
                     .sprite
-                    .set_tile_id(object_tiles::HAT_TILE_START + 4 * (timer / 2 % 10) as u16);
+                    .set_tile_id(hat_base_tile + 4 * (timer / 2 % 10) as u16);
                 let distance_vector =
                     self.hat.position - self.wizard.position + hat_resting_position;
                 let distance = distance_vector.magnitude();
