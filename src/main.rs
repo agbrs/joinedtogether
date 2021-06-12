@@ -368,9 +368,17 @@ impl<'a> Player<'a> {
                     distance_vector / distance
                 };
 
+                let hat_sprite_offset = timer
+                    / match self.num_recalls {
+                        0 => 1,
+                        1 => 2,
+                        2 | _ => 4,
+                    }
+                    % 10;
+
                 self.hat
                     .sprite
-                    .set_tile_id(object_tiles::HAT_TILE_START + 4 * (timer / 2 % 10) as u16);
+                    .set_tile_id(object_tiles::HAT_TILE_START + (hat_sprite_offset * 4) as u16);
 
                 if self.hat_slow_counter < 10 && self.hat.velocity.magnitude() < 2.into() {
                     self.hat.velocity = (0, 0).into();
