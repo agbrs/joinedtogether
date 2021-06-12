@@ -330,7 +330,13 @@ impl<'a> Player<'a> {
                 self.wizard.sprite.set_tile_id(object_tiles::WIZARD_JUMP);
             } else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
                 // going down
-                let offset = ((timer / 4) % 4) as u16;
+                let offset = if self.wizard.velocity.y * 2 > 3.into() {
+                    ((timer / 4) % 4) as u16
+                } else {
+                    // Don't flap beard unless going quickly
+                    0
+                };
+
                 self.wizard_frame = 0;
 
                 self.wizard
