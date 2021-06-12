@@ -12,6 +12,7 @@ enum UpdateState {
 
 pub enum Enemy<'a> {
     Slime(Slime<'a>),
+    Snail(Snail<'a>),
     Empty,
 }
 
@@ -28,7 +29,11 @@ pub enum EnemyUpdateState {
 
 impl<'a> Enemy<'a> {
     pub fn new_slime(object: &'a ObjectControl, start_pos: Vector2D<FixedNumberType>) -> Self {
-        Enemy::Slime(Slime::new(object, start_pos))
+        Enemy::Slime(Slime::new(object, start_pos + (0, 1).into()))
+    }
+
+    pub fn new_snail(object: &'a ObjectControl, start_pos: Vector2D<FixedNumberType>) -> Self {
+        Enemy::Snail(Snail::new(object, start_pos))
     }
 
     pub fn update(
@@ -40,6 +45,7 @@ impl<'a> Enemy<'a> {
     ) -> EnemyUpdateState {
         let update_state = match self {
             Enemy::Slime(slime) => slime.update(level, player_pos, hat_state, timer),
+            Enemy::Snail(snail) => snail.update(level, player_pos, hat_state, timer),
             Enemy::Empty => UpdateState::Nothing,
         };
 
@@ -56,6 +62,7 @@ impl<'a> Enemy<'a> {
     pub fn commit(&mut self, background_offset: Vector2D<FixedNumberType>) {
         match self {
             Enemy::Slime(slime) => slime.commit(background_offset),
+            Enemy::Snail(snail) => snail.commit(background_offset),
             Enemy::Empty => {}
         }
     }
@@ -187,6 +194,148 @@ impl<'a> Slime<'a> {
                     .entity
                     .sprite
                     .set_tile_id(object_tiles::SLIME_SPLAT_START + (offset * 4) as u16);
+            }
+        }
+
+        self.enemy_info.update(level);
+
+        UpdateState::Nothing
+    }
+
+    fn commit(&mut self, background_offset: Vector2D<FixedNumberType>) {
+        self.enemy_info.commit(background_offset);
+    }
+}
+
+enum SnailState {
+    Idle(i32),       // start frame (or 0 if newly created)
+    Emerging(i32),   // start frame
+    Retreating(i32), // start frame
+    Moving(i32),     // start frame
+}
+
+pub struct Snail<'a> {
+    enemy_info: EnemyInfo<'a>,
+    state: SnailState,
+}
+
+impl<'a> Snail<'a> {
+    fn new(object: &'a ObjectControl, start_pos: Vector2D<FixedNumberType>) -> Self {
+        let mut snail = Snail {
+            enemy_info: EnemyInfo::new(object, start_pos, (16u16, 16u16).into()),
+            state: SnailState::Idle(0),
+        };
+
+        snail.enemy_info.entity.sprite.set_sprite_size(Size::S16x16);
+
+        snail
+    }
+
+    fn update(
+        &mut self,
+        level: &Level,
+        player_pos: Vector2D<FixedNumberType>,
+        hat_state: HatState,
+        timer: i32,
+    ) -> UpdateState {
+        let player_has_collided =
+            (self.enemy_info.entity.position - player_pos).magnitude_squared() < (10 * 10).into();
+
+        match self.state {
+            SnailState::Idle(wait_time) => {
+                self.enemy_info.entity.velocity = (0, 0).into();
+
+                if wait_time == 0 || timer - wait_time > 120 {
+                    // wait at least 2 seconds after switching to this state
+                    if (self.enemy_info.entity.position - player_pos).magnitude_squared()
+                        < (48 * 48).into()
+                    {
+                        // player is close
+                        self.state = SnailState::Emerging(timer);
+                    }
+                }
+
+                self.enemy_info
+                    .entity
+                    .sprite
+                    .set_tile_id(object_tiles::SNAIL_IDLE_START);
+                if player_has_collided && hat_state != HatState::WizardTowards {
+                    return UpdateState::KillPlayer;
+                }
+            }
+            SnailState::Emerging(time) => {
+                let offset = (timer - time) / 4;
+
+                if offset >= 5 {
+                    self.state = SnailState::Moving(timer);
+                }
+                self.enemy_info.entity.velocity = (0, 0).into();
+
+                self.enemy_info
+                    .entity
+                    .sprite
+                    .set_tile_id(object_tiles::SNAIL_EMERGE_START + (offset * 4) as u16);
+
+                if player_has_collided {
+                    if hat_state != HatState::WizardTowards {
+                        return UpdateState::KillPlayer;
+                    } else if hat_state == HatState::WizardTowards && offset > 1 {
+                        return UpdateState::Remove;
+                    }
+                }
+            }
+            SnailState::Moving(time) => {
+                if timer - time > 240 {
+                    // only move for 4 seconds
+                    self.state = SnailState::Retreating(timer);
+                }
+
+                let offset = (timer - time) / 8 % 2;
+
+                self.enemy_info
+                    .entity
+                    .sprite
+                    .set_tile_id(object_tiles::SNAIL_MOVE + (offset * 4) as u16);
+
+                let x_vel: FixedNumberType = if self.enemy_info.entity.position.x < player_pos.x {
+                    self.enemy_info.entity.sprite.set_hflip(false);
+                    1
+                } else {
+                    self.enemy_info.entity.sprite.set_hflip(true);
+                    -1
+                }
+                .into();
+
+                self.enemy_info.entity.velocity = (x_vel / 8, 0.into()).into();
+
+                if player_has_collided {
+                    if hat_state != HatState::WizardTowards {
+                        return UpdateState::KillPlayer;
+                    } else if hat_state == HatState::WizardTowards {
+                        return UpdateState::Remove;
+                    }
+                }
+            }
+            SnailState::Retreating(time) => {
+                let offset = 5 - (timer - time) / 4;
+
+                if offset == 0 {
+                    self.state = SnailState::Idle(timer);
+                }
+
+                self.enemy_info
+                    .entity
+                    .sprite
+                    .set_tile_id(object_tiles::SNAIL_EMERGE_START + (offset * 4) as u16);
+                self.enemy_info.entity.velocity = (0, 0).into();
+
+                if player_has_collided {
+                    if hat_state != HatState::WizardTowards {
+                        return UpdateState::KillPlayer;
+                    } else if hat_state == HatState::WizardTowards && offset > 1 {
+                        return UpdateState::Remove;
+                    }
+                }
             }
         }
 
