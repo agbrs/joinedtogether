@@ -167,7 +167,7 @@ fn ping_pong(i: i32, n: i32) -> i32 {
 
 impl<'a> Player<'a> {
     fn new(controller: &'a ObjectControl) -> Self {
-        let mut hat = Entity::new(controller, (10_u16, 7_u16).into());
+        let mut hat = Entity::new(controller, (6_u16, 7_u16).into());
         let mut wizard = Entity::new(controller, (6_u16, 14_u16).into());
 
         wizard.sprite.set_tile_id(object_tiles::WIZARD_TILE_START);
