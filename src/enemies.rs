@@ -231,6 +231,10 @@ impl<'a> Snail<'a> {
         snail
     }
 
+    pub fn collides_with(&self, position: Vector2D<FixedNumberType>) -> bool {
+        (self.enemy_info.entity.position - position).magnitude_squared() < (15 * 15).into()
+    }
+
     fn update(
         &mut self,
         level: &Level,
