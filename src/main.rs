@@ -232,22 +232,20 @@ impl<'a> Player<'a> {
                     .set_tile_id(object_tiles::WIZARD_TILE_START + offset * 4);
             }
 
-            if self.wizard.velocity.y < FixedNumberType::new(1) / 16 {
+            if self.wizard.velocity.y < -FixedNumberType::new(1) / 16 {
                 // going up
+                self.wizard_frame = 1;
+
+                self.wizard.sprite.set_tile_id(object_tiles::WIZARD_JUMP);
+            } else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
+                // going down
+                let offset = ((timer / 8) % 4) as u16;
                 self.wizard_frame = 0;
 
                 self.wizard
                     .sprite
-                    .set_tile_id(object_tiles::WIZARD_FALL_START);
-            } /*else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
-                  // going down
-                  let offset = ((timer / 8) % 4) as u16;
-                  self.wizard_frame = 0;
-
-                  self.wizard
-                      .sprite
-                      .set_tile_id(object_tiles::WIZARD_FALL_START + offset * 4);
-              }*/
+                    .set_tile_id(object_tiles::WIZARD_FALL_START + offset * 4);
+            }
 
             if input.x_tri() != agb::input::Tri::Zero {
                 self.facing = input.x_tri();
