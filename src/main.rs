@@ -103,6 +103,22 @@ impl<'a> Entity<'a> {
         false
     }
 
+    fn killision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+        let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
+        let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
+        let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
+        let bottom = (position.y + self.collision_mask.y as i32 / 2).floor() / 8;
+
+        for x in left..=right {
+            for y in top..=bottom {
+                if level.kills(x, y) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     // returns the distance actually moved
     fn update_position(&mut self, level: &Level) -> Vector2D<FixedNumberType> {
         let old_position = self.position;
@@ -162,6 +178,17 @@ impl Level {
         let tile_background = self.background[pos];
         let foreground_tile_property = self.collision[tile_foreground as usize];
         foreground_tile_property == map_tiles::tilemap::COLLISION_TILE as u32
+    }
+
+    fn kills(&self, x: i32, y: i32) -> bool {
+        if (x < 0 || x >= self.dimensions.x as i32) || (y < 0 || y >= self.dimensions.y as i32) {
+            return true;
+        }
+        let pos = (self.dimensions.x as i32 * y + x) as usize;
+        let tile_foreground = self.foreground[pos];
+        let tile_background = self.background[pos];
+        let foreground_tile_property = self.collision[tile_foreground as usize];
+        foreground_tile_property == map_tiles::tilemap::KILL_TILE as u32
     }
 }
 
@@ -401,6 +428,12 @@ struct PlayingLevel<'a> {
     enemies: [enemies::Enemy<'a>; 16],
 }
 
+enum UpdateState {
+    Normal,
+    Dead,
+    Complete,
+}
+
 impl<'a> PlayingLevel<'a> {
     fn open_level(
         level: Level,
@@ -409,9 +442,11 @@ impl<'a> PlayingLevel<'a> {
         foreground: &'a mut Background,
         input: ButtonController,
     ) -> Self {
+        background.set_position(level.foreground, level.dimensions, (0, 0).into());
         background.draw_full_map(level.foreground, level.dimensions);
         background.show();
 
+        foreground.set_position(level.background, level.dimensions, (0, 0).into());
         foreground.draw_full_map(level.background, level.dimensions);
         foreground.set_priority(Priority::P2);
         foreground.show();
@@ -433,7 +468,7 @@ impl<'a> PlayingLevel<'a> {
         }
     }
 
-    fn update_frame(&mut self) {
+    fn update_frame(&mut self) -> UpdateState {
         self.timer += 1;
         self.input.update();
 
@@ -457,6 +492,16 @@ impl<'a> PlayingLevel<'a> {
 
         for enemy in self.enemies.iter_mut() {
             enemy.commit(self.background.position);
+        }
+
+        if self
+            .player
+            .wizard
+            .killision_at_point(&self.background.level, self.player.wizard.position)
+        {
+            UpdateState::Dead
+        } else {
+            UpdateState::Normal
         }
     }
 
@@ -502,23 +547,30 @@ pub fn main() -> ! {
     let mut foreground = tiled.get_background().unwrap();
     object.enable();
 
-    let mut level = PlayingLevel::open_level(
-        Level {
-            background: &map_tiles::level1::TILEMAP,
-            foreground: &map_tiles::level1::BACKGROUND,
-            dimensions: (map_tiles::level1::WIDTH, map_tiles::level1::HEIGHT).into(),
-            collision: &map_tiles::tilemap::TILE_DATA,
-        },
-        &object,
-        &mut background,
-        &mut foreground,
-        agb::input::ButtonController::new(),
-    );
-
     let vblank = agb.display.vblank.get();
 
     loop {
-        level.update_frame();
-        vblank.wait_for_VBlank();
+        let mut level = PlayingLevel::open_level(
+            Level {
+                background: &map_tiles::level1::TILEMAP,
+                foreground: &map_tiles::level1::BACKGROUND,
+                dimensions: (map_tiles::level1::WIDTH, map_tiles::level1::HEIGHT).into(),
+                collision: &map_tiles::tilemap::TILE_DATA,
+            },
+            &object,
+            &mut background,
+            &mut foreground,
+            agb::input::ButtonController::new(),
+        );
+        loop {
+            match level.update_frame() {
+                UpdateState::Normal => {}
+                UpdateState::Dead => {
+                    break;
+                }
+                UpdateState::Complete => {}
+            }
+            vblank.wait_for_VBlank();
+        }
     }
 }
