@@ -80,17 +80,14 @@ impl<'a> Entity<'a> {
     // returns the distance actually moved
     fn update_position(&mut self, level: &Level) -> Vector2D<FixedNumberType> {
         let old_position = self.position;
-        let x_velocity = (self.velocity.x / 10, 0.into()).into();
-        for _ in 0..10 {
-            if !self.collision_at_point(level, self.position + x_velocity) {
-                self.position += x_velocity;
-            }
+        let x_velocity = (self.velocity.x, 0.into()).into();
+        if !self.collision_at_point(level, self.position + x_velocity) {
+            self.position += x_velocity;
         }
-        let y_velocity = (0.into(), self.velocity.y / 10).into();
-        for _ in 0..10 {
-            if !self.collision_at_point(level, self.position + y_velocity) {
-                self.position += y_velocity;
-            }
+
+        let y_velocity = (0.into(), self.velocity.y).into();
+        if !self.collision_at_point(level, self.position + y_velocity) {
+            self.position += y_velocity;
         }
 
         self.position - old_position
