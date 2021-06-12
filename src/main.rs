@@ -280,7 +280,7 @@ impl<'a> Player<'a> {
                 } else {
                     self.hat.velocity += direction / 4;
                 }
-                self.hat.update_position(level);
+                self.hat.velocity = self.hat.update_position(level);
                 if distance > 16.into() {
                     self.hat_left_range = true;
                 }
@@ -304,7 +304,7 @@ impl<'a> Player<'a> {
                 if distance != 0.into() {
                     self.wizard.velocity += distance_vector / distance;
                 }
-                self.wizard.update_position(level);
+                self.wizard.velocity = self.wizard.update_position(level);
                 if distance < 8.into() {
                     self.wizard.velocity = self.wizard.velocity / 8;
                     self.hat_state = HatState::OnHead;
