@@ -211,6 +211,9 @@ impl<'a> Player<'a> {
                 self.hat.velocity = (0, 0).into();
                 self.wizard.velocity = (0, 0).into();
                 self.hat_state = HatState::WizardTowards;
+            } else if self.hat_state == HatState::WizardTowards {
+                self.hat_state = HatState::Thrown;
+                self.wizard.velocity /= 8;
             }
         }
 
@@ -320,7 +323,7 @@ impl<'a> Player<'a> {
                 }
                 self.wizard.velocity = self.wizard.update_position(level);
                 if distance < 16.into() {
-                    self.wizard.velocity = self.wizard.velocity / 8;
+                    self.wizard.velocity /= 8;
                     self.hat_state = HatState::OnHead;
                 }
             }
