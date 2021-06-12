@@ -23,6 +23,7 @@ fn main() {
     println!("cargo:rerun-if-changed=gfx/tile_sheet.png");
 
     tiled_export::export_tilemap(&out_dir).expect("Failed to export tilemap");
+    tiled_export::export_level(&out_dir, "level0.json").expect("Failed to export level");
     tiled_export::export_level(&out_dir, "level1.json").expect("Failed to export level");
 }
 
@@ -181,12 +182,13 @@ mod tiled_export {
             &mut writer,
             r#"
             use crate::Level;
+            use agb::number::Vector2D;
 
-            pub fn get_level() -> Level {{
+            pub const fn get_level() -> Level {{
                 Level {{
                     background: &TILEMAP,
                     foreground: &BACKGROUND,
-                    dimensions: (WIDTH, HEIGHT).into(),
+                    dimensions: Vector2D {{x: WIDTH, y: HEIGHT}},
                     collision: &crate::map_tiles::tilemap::TILE_DATA,
     
                     enemy_stops: &ENEMY_STOPS,
@@ -203,7 +205,7 @@ mod tiled_export {
 
     fn get_map_id(id: i32) -> i32 {
         match id {
-            0 => 148,
+            0 => 10,
             i => i - 1,
         }
     }
