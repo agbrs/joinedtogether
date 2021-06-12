@@ -566,6 +566,26 @@ impl<'a> PlayingLevel<'a> {
         }
     }
 
+    fn dead_start(&mut self) {
+        self.player.wizard.velocity = (0, -1).into();
+        self.player.wizard.sprite.set_priority(Priority::P0);
+    }
+
+    fn dead_update(&mut self) -> bool {
+        self.timer += 1;
+
+        self.player.wizard.velocity += (0.into(), FixedNumberType::new(1) / 32).into();
+        self.player.wizard.position += self.player.wizard.velocity;
+        self.player
+            .wizard
+            .sprite
+            .set_tile_id((self.timer / 8 % 2 * 4 + 63 * 4) as u16);
+
+        self.player.wizard.commit_position(self.background.position);
+
+        self.player.wizard.position.y - self.background.position.y < (HEIGHT + 8).into()
+    }
+
     fn update_frame(&mut self) -> UpdateState {
         self.timer += 1;
         self.input.update();
@@ -688,6 +708,10 @@ pub fn main() -> ! {
             match level.update_frame() {
                 UpdateState::Normal => {}
                 UpdateState::Dead => {
+                    level.dead_start();
+                    while level.dead_update() {
+                        vblank.wait_for_VBlank();
+                    }
                     break;
                 }
                 UpdateState::Complete => {
