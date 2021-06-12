@@ -68,9 +68,25 @@ impl<'a> Entity<'a> {
         }
     }
 
-    fn collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+    fn lr_collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
         let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
         let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
+        let top = (position.y - self.collision_mask.y as i32 / 2 + 1).floor() / 8;
+        let bottom = (position.y + self.collision_mask.y as i32 / 2 - 1).floor() / 8;
+
+        for x in left..=right {
+            for y in top..=bottom {
+                if level.collides(x, y) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn tb_collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+        let left = (position.x - self.collision_mask.x as i32 / 2 + 1).floor() / 8;
+        let right = (position.x + self.collision_mask.x as i32 / 2 - 1).floor() / 8;
         let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
         let bottom = (position.y + self.collision_mask.y as i32 / 2).floor() / 8;
 
@@ -84,17 +100,53 @@ impl<'a> Entity<'a> {
         false
     }
 
+    fn lr_stopping_point(
+        &self,
+        position: Vector2D<FixedNumberType>,
+        direction: i32,
+    ) -> FixedNumberType {
+        let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
+        let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
+
+        if direction < 0 {
+            (left * 8 + self.collision_mask.x as i32 / 2 + 8).into()
+        } else {
+            (right * 8 - self.collision_mask.x as i32 / 2).into()
+        }
+    }
+
+    fn tb_stopping_point(
+        &self,
+        position: Vector2D<FixedNumberType>,
+        direction: i32,
+    ) -> FixedNumberType {
+        let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
+        let bottom = (position.y + self.collision_mask.y as i32 / 2).floor() / 8;
+
+        if direction < 0 {
+            (top * 8 + self.collision_mask.y as i32 / 2 + 8).into()
+        } else {
+            (bottom * 8 - self.collision_mask.y as i32 / 2).into()
+        }
+    }
+
     // returns the distance actually moved
     fn update_position(&mut self, level: &Level) -> Vector2D<FixedNumberType> {
         let old_position = self.position;
         let x_velocity = (self.velocity.x, 0.into()).into();
-        if !self.collision_at_point(level, self.position + x_velocity) {
+        if !self.lr_collision_at_point(level, self.position + x_velocity) {
             self.position += x_velocity;
+        } else {
+            self.position.x =
+                self.lr_stopping_point(self.position + x_velocity, x_velocity.x.to_raw());
         }
 
         let y_velocity = (0.into(), self.velocity.y).into();
-        if !self.collision_at_point(level, self.position + y_velocity) {
+        if !self.tb_collision_at_point(level, self.position + y_velocity) {
             self.position += y_velocity;
+        } else {
+            self.position.y =
+                self.tb_stopping_point(self.position + y_velocity, y_velocity.y.to_raw());
         }
 
         self.position - old_position
@@ -176,7 +228,7 @@ fn ping_pong(i: i32, n: i32) -> i32 {
 
 impl<'a> Player<'a> {
     fn new(controller: &'a ObjectControl) -> Self {
-        let mut hat = Entity::new(controller, (6_u16, 7_u16).into());
+        let mut hat = Entity::new(controller, (6_u16, 6_u16).into());
         let mut wizard = Entity::new(controller, (6_u16, 14_u16).into());
 
         wizard.sprite.set_tile_id(object_tiles::WIZARD_TILE_START);
@@ -232,7 +284,7 @@ impl<'a> Player<'a> {
 
         let is_on_ground = self
             .wizard
-            .collision_at_point(level, self.wizard.position + (0, 1).into());
+            .lr_collision_at_point(level, self.wizard.position + (0, 1).into());
 
         if self.hat_state != HatState::WizardTowards {
             if is_on_ground {
@@ -386,7 +438,7 @@ impl<'a> PlayingLevel<'a> {
         foreground.show();
 
         let mut e: [enemies::Enemy<'a>; 16] = Default::default();
-        e[0] = enemies::Enemy::new_slime(object_control, (9 * 8, 17 * 8).into());
+        e[0] = enemies::Enemy::new_slime(object_control, (9 * 8, 17 * 8 + 1).into());
 
         PlayingLevel {
             timer: 0,
