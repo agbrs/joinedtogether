@@ -212,6 +212,7 @@ enum SnailState {
     Emerging(i32),   // start frame
     Retreating(i32), // start frame
     Moving(i32),     // start frame
+    Death(i32),      // start frame
 }
 
 pub struct Snail<'a> {
@@ -280,7 +281,7 @@ impl<'a> Snail<'a> {
                     if hat_state != HatState::WizardTowards {
                         return UpdateState::KillPlayer;
                     } else if hat_state == HatState::WizardTowards && offset > 1 {
-                        return UpdateState::Remove;
+                        self.state = SnailState::Death(timer);
                     }
                 }
             }
@@ -312,7 +313,7 @@ impl<'a> Snail<'a> {
                     if hat_state != HatState::WizardTowards {
                         return UpdateState::KillPlayer;
                     } else if hat_state == HatState::WizardTowards {
-                        return UpdateState::Remove;
+                        self.state = SnailState::Death(timer);
                     }
                 }
             }
@@ -333,9 +334,24 @@ impl<'a> Snail<'a> {
                     if hat_state != HatState::WizardTowards {
                         return UpdateState::KillPlayer;
                     } else if hat_state == HatState::WizardTowards && offset > 1 {
-                        return UpdateState::Remove;
+                        self.state = SnailState::Death(timer);
                     }
                 }
+            }
+            SnailState::Death(time) => {
+                let offset = (timer - time) / 4;
+                let tile_id = if offset < 5 {
+                    object_tiles::SNAIL_EMERGE_START + ((5 - offset) * 4) as u16
+                } else if offset == 5 {
+                    object_tiles::SNAIL_IDLE_START
+                } else if offset < 5 + 7 {
+                    object_tiles::SNAIL_DEATH_START + ((offset - 5) * 4) as u16
+                } else {
+                    return UpdateState::Remove;
+                };
+
+                self.enemy_info.entity.sprite.set_tile_id(tile_id);
+                self.enemy_info.entity.velocity = (0, 0).into();
             }
         }
 

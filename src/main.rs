@@ -27,6 +27,7 @@ mod object_tiles {
     pub const SNAIL_IDLE_START: u16 = 48 * 4;
     pub const SNAIL_EMERGE_START: u16 = 49 * 4;
     pub const SNAIL_MOVE: u16 = 54 * 4;
+    pub const SNAIL_DEATH_START: u16 = 56 * 4;
 
     include!(concat!(env!("OUT_DIR"), "/object_sheet.rs"));
 }
