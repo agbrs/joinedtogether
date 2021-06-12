@@ -144,15 +144,7 @@ impl<'a> Entity<'a> {
             }
         }
 
-        let mid = (low + high) / 2;
-
-        let potential = unit_vector * mid;
-
-        if self.collision_at_point(level, self.position + potential) {
-            (0, 0).into()
-        } else {
-            potential
-        }
+        unit_vector * low
     }
 
     fn commit_position(&mut self, offset: Vector2D<FixedNumberType>) {
