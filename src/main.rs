@@ -588,6 +588,8 @@ impl<'a> PlayingLevel<'a> {
             .killision_at_point(&self.background.level, self.player.wizard.position);
         if player_dead {
             UpdateState::Dead
+        } else if self.enemies.iter().fold(true, |f, n| f & n.is_empty()) {
+            UpdateState::Complete
         } else {
             UpdateState::Normal
         }
