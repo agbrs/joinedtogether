@@ -32,10 +32,10 @@ mod tiled_export {
     use std::fs::File;
     use std::io::{BufReader, BufWriter, Write};
 
-    pub fn export_tilemap(out_dir: &str) -> std::io::Result<()> {
-        const COLLISION_TILE: i32 = 1;
-        const KILL_TILE: i32 = 2;
+    const COLLISION_TILE: i32 = 1;
+    const KILL_TILE: i32 = 2;
 
+    pub fn export_tilemap(out_dir: &str) -> std::io::Result<()> {
         let filename = "map/tilemap.json";
         println!("cargo:rerun-if-changed={}", filename);
         let file = File::open(filename)?;
@@ -97,12 +97,16 @@ mod tiled_export {
 
         let layer_1 = level.layers[0]
             .data
+            .as_ref()
+            .expect("Expected first layer to be a tile layer")
             .iter()
             .map(|id| get_map_id(*id).to_string())
             .collect::<Vec<_>>()
             .join(", ");
         let layer_2 = level.layers[1]
             .data
+            .as_ref()
+            .expect("Expected second layer to be a tile layer")
             .iter()
             .map(|id| get_map_id(*id).to_string())
             .collect::<Vec<_>>()
@@ -115,6 +119,54 @@ mod tiled_export {
             &mut writer,
             "pub const BACKGROUND: &[u16] = &[{}];",
             layer_2
+        )?;
+
+        let objects = level.layers[2]
+            .objects
+            .as_ref()
+            .expect("Expected third layer to be an object layer")
+            .iter()
+            .map(|object| (&object.object_type, (object.x, object.y)));
+        let mut snails = vec![];
+        let mut slimes = vec![];
+        let mut player_start = None;
+
+        for (object_type, (x, y)) in objects {
+            match object_type.as_str() {
+                "Snail Spawn" => snails.push((x, y)),
+                "Slime Spawn" => slimes.push((x, y)),
+                "Player Start" => player_start = Some((x, y)),
+                _ => panic!("Unknown object type {}", object_type),
+            }
+        }
+
+        let player_start = player_start.expect("Need a start place for the player");
+
+        let slimes_str = slimes
+            .iter()
+            .map(|slime| format!("({}, {})", slime.0, slime.1))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let snails_str = snails
+            .iter()
+            .map(|slime| format!("({}, {})", slime.0, slime.1))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        writeln!(
+            &mut writer,
+            "pub const SNAILS: &[(i32, i32)] = &[{}];",
+            snails_str
+        )?;
+        writeln!(
+            &mut writer,
+            "pub const SLIMES: &[(i32, i32)] = &[{}];",
+            slimes_str
+        )?;
+        writeln!(
+            &mut writer,
+            "pub const START_POS: (i32, i32) = ({}, {});",
+            player_start.0, player_start.1
         )?;
 
         Ok(())
@@ -136,7 +188,16 @@ mod tiled_export {
 
     #[derive(Deserialize)]
     struct TiledLayer {
-        data: Vec<i32>,
+        data: Option<Vec<i32>>,
+        objects: Option<Vec<TiledObject>>,
+    }
+
+    #[derive(Deserialize)]
+    struct TiledObject {
+        #[serde(rename = "type")]
+        object_type: String,
+        x: i32,
+        y: i32,
     }
 
     #[derive(Deserialize)]
