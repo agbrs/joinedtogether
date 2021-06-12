@@ -148,7 +148,7 @@ impl<'a> Slime<'a> {
         timer: i32,
     ) -> UpdateState {
         let player_has_collided =
-            (self.enemy_info.entity.position - player_pos).magnitude_squared() < (16 * 16).into();
+            (self.enemy_info.entity.position - player_pos).magnitude_squared() < (10 * 10).into();
 
         match self.state {
             SlimeState::Idle => {

@@ -53,7 +53,7 @@
 </data>
  </layer>
  <objectgroup id="3" name="Point locations">
-  <object id="2" type="Slime Spawn" x="136" y="120">
+  <object id="2" type="Slime Spawn" x="176" y="120">
    <point/>
   </object>
   <object id="3" type="Player Start" x="48" y="120">
