@@ -1,11 +1,12 @@
-use super::{object_tiles, Entity, FixedNumberType, Level};
+use super::{object_tiles, Entity, FixedNumberType, HatState, Level};
 use agb::{
     display::object::{ObjectControl, Size},
-    number::Vector2D,
+    number::{Rect, Vector2D},
 };
 
 enum UpdateState {
     Nothing,
+    KillPlayer,
     Remove,
 }
 
@@ -20,21 +21,36 @@ impl<'a> Default for Enemy<'a> {
     }
 }
 
+pub enum EnemyUpdateState {
+    None,
+    KillPlayer,
+}
+
 impl<'a> Enemy<'a> {
     pub fn new_slime(object: &'a ObjectControl, start_pos: Vector2D<FixedNumberType>) -> Self {
         Enemy::Slime(Slime::new(object, start_pos))
     }
 
-    pub fn update(&mut self, level: &Level, player_pos: Vector2D<FixedNumberType>, timer: i32) {
+    pub fn update(
+        &mut self,
+        level: &Level,
+        player_pos: Vector2D<FixedNumberType>,
+        hat_state: HatState,
+        timer: i32,
+    ) -> EnemyUpdateState {
         let update_state = match self {
-            Enemy::Slime(slime) => slime.update(level, player_pos, timer),
+            Enemy::Slime(slime) => slime.update(level, player_pos, hat_state, timer),
             Enemy::Empty => UpdateState::Nothing,
         };
 
         match update_state {
-            UpdateState::Remove => *self = Enemy::Empty,
-            UpdateState::Nothing => {}
-        };
+            UpdateState::Remove => {
+                *self = Enemy::Empty;
+                EnemyUpdateState::None
+            }
+            UpdateState::KillPlayer => EnemyUpdateState::KillPlayer,
+            UpdateState::Nothing => EnemyUpdateState::None,
+        }
     }
 
     pub fn commit(&mut self, background_offset: Vector2D<FixedNumberType>) {
@@ -98,8 +114,12 @@ impl<'a> Slime<'a> {
         &mut self,
         level: &Level,
         player_pos: Vector2D<FixedNumberType>,
+        hat_state: HatState,
         timer: i32,
     ) -> UpdateState {
+        let player_has_collided =
+            (self.enemy_info.entity.position - player_pos).magnitude_squared() < (16 * 16).into();
+
         match self.state {
             SlimeState::Idle => {
                 let offset = (timer / 16 % 2) * 4;
@@ -123,9 +143,17 @@ impl<'a> Slime<'a> {
 
                     self.enemy_info.entity.velocity = (x_vel / 4, 0.into()).into();
                 }
+
+                if player_has_collided {
+                    if hat_state == HatState::WizardTowards {
+                        self.state = SlimeState::Dying(timer);
+                    } else {
+                        return UpdateState::KillPlayer;
+                    }
+                }
             }
             SlimeState::Jumping(jumping_start_frame) => {
-                let offset = ((timer - jumping_start_frame) / 4);
+                let offset = (timer - jumping_start_frame) / 4;
 
                 if offset >= 7 {
                     self.enemy_info.entity.velocity = (0, 0).into();
@@ -138,9 +166,18 @@ impl<'a> Slime<'a> {
                         .sprite
                         .set_tile_id(object_tiles::SLIME_JUMP_START + (sprite_offset * 4) as u16);
                 }
+
+                if player_has_collided {
+                    if hat_state == HatState::WizardTowards {
+                        self.state = SlimeState::Dying(timer);
+                    } else {
+                        return UpdateState::KillPlayer;
+                    }
+                }
             }
             SlimeState::Dying(dying_start_frame) => {
-                let offset = ((timer - dying_start_frame) / 16) * 4;
+                let offset = (timer - dying_start_frame) / 4;
+                self.enemy_info.entity.velocity = (0, 0).into();
 
                 if offset >= 4 {
                     return UpdateState::Remove;
@@ -149,7 +186,7 @@ impl<'a> Slime<'a> {
                 self.enemy_info
                     .entity
                     .sprite
-                    .set_tile_id(object_tiles::SLIME_SPLAT_START + offset as u16);
+                    .set_tile_id(object_tiles::SLIME_SPLAT_START + (offset * 4) as u16);
             }
         }
 

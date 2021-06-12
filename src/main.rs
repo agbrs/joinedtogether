@@ -146,8 +146,8 @@ impl Level {
     }
 }
 
-#[derive(PartialEq, Eq)]
-enum HatState {
+#[derive(PartialEq, Eq, Copy, Clone)]
+pub enum HatState {
     OnHead,
     Thrown,
     WizardTowards,
@@ -413,6 +413,7 @@ impl<'a> PlayingLevel<'a> {
             enemy.update(
                 &self.background.level,
                 self.player.wizard.position,
+                self.player.hat_state,
                 self.timer,
             );
         }
