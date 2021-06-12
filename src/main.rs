@@ -302,10 +302,11 @@ impl<'a> Player<'a> {
                     self.hat.position - self.wizard.position + hat_resting_position;
                 let distance = distance_vector.magnitude();
                 if distance != 0.into() {
-                    self.wizard.velocity += distance_vector / distance;
+                    let v = self.wizard.velocity.magnitude() + 1;
+                    self.wizard.velocity = distance_vector / distance * v;
                 }
                 self.wizard.velocity = self.wizard.update_position(level);
-                if distance < 8.into() {
+                if distance < 16.into() {
                     self.wizard.velocity = self.wizard.velocity / 8;
                     self.hat_state = HatState::OnHead;
                 }
