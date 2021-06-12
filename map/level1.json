@@ -79,6 +79,30 @@
                  "width":0,
                  "x":24,
                  "y":56
+                }, 
+                {
+                 "height":0,
+                 "id":11,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"Enemy Stop",
+                 "visible":true,
+                 "width":0,
+                 "x":296,
+                 "y":152
+                }, 
+                {
+                 "height":0,
+                 "id":12,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"Enemy Stop",
+                 "visible":true,
+                 "width":0,
+                 "x":376,
+                 "y":152
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -87,7 +111,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":11,
+ "nextobjectid":14,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.7.0",
