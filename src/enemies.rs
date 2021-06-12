@@ -100,6 +100,15 @@ impl<'a> EnemyInfo<'a> {
     }
 
     fn update(&mut self, level: &Level) {
+        for &enemy_stop in level.enemy_stops {
+            if (self.entity.position + self.entity.velocity - enemy_stop.into())
+                .manhattan_distance()
+                < 8.into()
+            {
+                self.entity.velocity = (0, 0).into();
+            }
+        }
+
         self.entity.update_position(level);
     }
 

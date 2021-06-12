@@ -12,6 +12,7 @@ pub struct Level {
 
     slimes: &'static [(i32, i32)],
     snails: &'static [(i32, i32)],
+    enemy_stops: &'static [(i32, i32)],
     start_pos: (i32, i32),
 }
 
@@ -662,6 +663,7 @@ pub fn main() -> ! {
                 dimensions: (map_tiles::level1::WIDTH, map_tiles::level1::HEIGHT).into(),
                 collision: &map_tiles::tilemap::TILE_DATA,
 
+                enemy_stops: &map_tiles::level1::ENEMY_STOPS,
                 slimes: &map_tiles::level1::SLIMES,
                 snails: &map_tiles::level1::SNAILS,
                 start_pos: map_tiles::level1::START_POS,
