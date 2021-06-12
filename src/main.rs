@@ -3,7 +3,7 @@
 
 mod enemies;
 
-struct Level {
+pub struct Level {
     background: &'static [u16],
     foreground: &'static [u16],
     dimensions: Vector2D<u32>,
@@ -366,6 +366,8 @@ struct PlayingLevel<'a> {
     background: Map<'a>,
     input: ButtonController,
     player: Player<'a>,
+
+    enemies: [enemies::Enemy<'a>; 16],
 }
 
 impl<'a> PlayingLevel<'a> {
@@ -383,6 +385,9 @@ impl<'a> PlayingLevel<'a> {
         foreground.set_priority(Priority::P2);
         foreground.show();
 
+        let mut e: [enemies::Enemy<'a>; 16] = Default::default();
+        e[0] = enemies::Enemy::new_slime(object_control, (9 * 8, 17 * 8).into());
+
         PlayingLevel {
             timer: 0,
             background: Map {
@@ -393,6 +398,7 @@ impl<'a> PlayingLevel<'a> {
             },
             player: Player::new(object_control),
             input,
+            enemies: e,
         }
     }
 
@@ -402,11 +408,24 @@ impl<'a> PlayingLevel<'a> {
 
         self.player
             .update_frame(&self.input, self.timer, &self.background.level);
+
+        for enemy in self.enemies.iter_mut() {
+            enemy.update(
+                &self.background.level,
+                self.player.wizard.position,
+                self.timer,
+            );
+        }
+
         self.background.position = self.get_next_map_position();
         self.background.commit_position();
 
         self.player.wizard.commit_position(self.background.position);
         self.player.hat.commit_position(self.background.position);
+
+        for enemy in self.enemies.iter_mut() {
+            enemy.commit(self.background.position);
+        }
     }
 
     fn get_next_map_position(&self) -> Vector2D<FixedNumberType> {
