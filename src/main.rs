@@ -4,7 +4,8 @@
 mod chickenmap;
 
 struct Level {
-    content: &'static [u16],
+    background: &'static [u16],
+    foreground: &'static [u16],
     dimensions: Vector2D<u32>,
     collision: &'static [u8],
 }
@@ -63,7 +64,8 @@ impl<'a> Entity<'a> {
 }
 
 struct Map<'a> {
-    layer: &'a mut Background,
+    background: &'a mut Background,
+    foreground: &'a mut Background,
     position: Vector2D<FixedNumberType>,
     level: Level,
 }
@@ -283,15 +285,17 @@ impl<'a> PlayingLevel<'a> {
         level: Level,
         object_control: &'a ObjectControl,
         background: &'a mut Background,
+        foreground: &'a mut Background,
         input: ButtonController,
     ) -> Self {
-        background.draw_full_map(level.content, level.dimensions);
+        background.draw_full_map(level.background, level.dimensions);
         background.show();
 
         PlayingLevel {
             timer: 0,
             background: Map {
-                layer: background,
+                background,
+                foreground,
                 level,
                 position: (0, 0).into(),
             },
@@ -323,16 +327,19 @@ pub fn main() -> ! {
     tiled.set_sprite_tilemap(object_tiles::TILE_DATA);
 
     let mut background = tiled.get_background().unwrap();
+    let mut foreground = tiled.get_background().unwrap();
     object.enable();
 
     let mut level = PlayingLevel::open_level(
         Level {
-            content: &chickenmap::MAP_MAP,
+            background: &chickenmap::MAP_MAP,
+            foreground: &chickenmap::MAP_MAP,
             dimensions: (32_u32, 32_u32).into(),
             collision: &[],
         },
         &object,
         &mut background,
+        &mut foreground,
         agb::input::ButtonController::new(),
     );
 
