@@ -284,7 +284,7 @@ impl<'a> Player<'a> {
 
         let is_on_ground = self
             .wizard
-            .lr_collision_at_point(level, self.wizard.position + (0, 1).into());
+            .tb_collision_at_point(level, self.wizard.position + (0, 1).into());
 
         if self.hat_state != HatState::WizardTowards {
             if is_on_ground {
