@@ -555,8 +555,6 @@ pub fn main() -> ! {
     let vblank = agb.display.vblank.get();
 
     loop {
-        let mut button_controller = agb::input::ButtonController::new();
-        button_controller.update();
         let mut level = PlayingLevel::open_level(
             Level {
                 background: &map_tiles::level1::TILEMAP,
@@ -567,7 +565,7 @@ pub fn main() -> ! {
             &object,
             &mut background,
             &mut foreground,
-            button_controller,
+            agb::input::ButtonController::new(),
         );
         loop {
             match level.update_frame() {
