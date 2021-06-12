@@ -90,9 +90,9 @@ impl<'a> Entity<'a> {
 
     fn killision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
         let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
-        let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
+        let right = (position.x + self.collision_mask.x as i32 / 2 - 1).floor() / 8;
         let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
-        let bottom = (position.y + self.collision_mask.y as i32 / 2).floor() / 8;
+        let bottom = (position.y + self.collision_mask.y as i32 / 2 - 1).floor() / 8;
 
         for x in left..=right {
             for y in top..=bottom {
