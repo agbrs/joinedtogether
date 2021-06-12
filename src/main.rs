@@ -239,12 +239,6 @@ impl<'a> Player<'a> {
                 self.wizard.sprite.set_tile_id(object_tiles::WIZARD_JUMP);
             } else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
                 // going down
-                let offset = ((timer / 8) % 4) as u16;
-                self.wizard_frame = 0;
-
-                self.wizard.sprite.set_tile_id(object_tiles::WIZARD_JUMP);
-            } else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
-                // going down
                 let offset = ((timer / 4) % 4) as u16;
                 self.wizard_frame = 0;
 
