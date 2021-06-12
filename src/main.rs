@@ -5,7 +5,7 @@ struct Level {
     background: &'static [u16],
     foreground: &'static [u16],
     dimensions: Vector2D<u32>,
-    collision: &'static [u8],
+    collision: &'static [u32],
 }
 
 mod object_tiles {
@@ -34,12 +34,11 @@ use agb::{
     display::{
         object::{ObjectControl, ObjectStandard, Size},
         tiled0::Background,
-        HEIGHT, WIDTH,
+        Priority, HEIGHT, WIDTH,
     },
     input::{self, Button, ButtonController},
     number::{FixedNum, Vector2D},
 };
-use object_tiles::HAT_TILE_START;
 
 type FixedNumberType = FixedNum<10>;
 
@@ -47,20 +46,50 @@ struct Entity<'a> {
     sprite: ObjectStandard<'a>,
     position: Vector2D<FixedNumberType>,
     velocity: Vector2D<FixedNumberType>,
+    collision_mask: Vector2D<u16>,
 }
 
 impl<'a> Entity<'a> {
-    fn new(object: &'a ObjectControl) -> Self {
-        let sprite = object.get_object_standard();
+    fn new(object: &'a ObjectControl, collision_mask: Vector2D<u16>) -> Self {
+        let mut sprite = object.get_object_standard();
+        sprite.set_priority(Priority::P1);
         Entity {
             sprite,
+            collision_mask,
             position: (0, 0).into(),
             velocity: (0, 0).into(),
         }
     }
 
-    fn update_position(&mut self) {
-        self.position += self.velocity;
+    fn collision_at_point(&mut self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+        let left = (position.x.floor() - self.collision_mask.x as i32 / 2) / 8;
+        let right = (position.x.floor() + self.collision_mask.x as i32 / 2) / 8;
+        let top = (position.y.floor() - self.collision_mask.y as i32 / 2) / 8;
+        let bottom = (position.y.floor() + self.collision_mask.y as i32 / 2) / 8;
+
+        for x in left..right {
+            for y in top..bottom {
+                if level.collides(x, y) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    // returns the distance actually moved
+    fn update_position(&mut self, level: &Level) -> Vector2D<FixedNumberType> {
+        let old_position = self.position;
+        let x_velocity = (self.velocity.x, 0.into()).into();
+        if !self.collision_at_point(level, self.position + x_velocity) {
+            self.position += x_velocity;
+        }
+        let y_velocity = (0.into(), self.velocity.y).into();
+        if !self.collision_at_point(level, self.position + y_velocity) {
+            self.position += y_velocity;
+        }
+
+        self.position - old_position
     }
     fn commit_position(&mut self, offset: Vector2D<FixedNumberType>) {
         let position = (self.position - offset).floor();
@@ -82,9 +111,15 @@ struct Map<'a> {
 }
 
 impl Level {
-    fn collides(&self, x: u32, y: u32) -> bool {
-        let tile = self.collision[(self.dimensions.x * y + x) as usize];
-        tile != 0
+    fn collides(&self, x: i32, y: i32) -> bool {
+        if (x < 0 || x >= self.dimensions.x as i32) || (y < 0 || y >= self.dimensions.y as i32) {
+            return true;
+        }
+        let pos = (self.dimensions.x as i32 * y + x) as usize;
+        let tile_foreground = self.foreground[pos];
+        let tile_background = self.background[pos];
+        let foreground_tile_property = self.collision[tile_foreground as usize];
+        foreground_tile_property == map_tiles::tilemap::COLLISION_TILE as u32
     }
 }
 
@@ -117,8 +152,8 @@ fn ping_pong(i: i32, n: i32) -> i32 {
 
 impl<'a> Player<'a> {
     fn new(controller: &'a ObjectControl) -> Self {
-        let mut hat = Entity::new(controller);
-        let mut wizard = Entity::new(controller);
+        let mut hat = Entity::new(controller, (16_u16, 16_u16).into());
+        let mut wizard = Entity::new(controller, (16_u16, 16_u16).into());
 
         wizard.sprite.set_tile_id(object_tiles::WIZARD_TILE_START);
         hat.sprite.set_tile_id(object_tiles::HAT_TILE_START);
@@ -143,7 +178,7 @@ impl<'a> Player<'a> {
         }
     }
 
-    fn update_frame(&mut self, input: &ButtonController, timer: i32) {
+    fn update_frame(&mut self, input: &ButtonController, timer: i32, level: &Level) {
         // throw or recall
         if input.is_just_pressed(Button::A) {
             if self.hat_state == HatState::OnHead {
@@ -169,6 +204,9 @@ impl<'a> Player<'a> {
             let gravity = gravity / 16;
             self.wizard.velocity += gravity;
             self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 64;
+
+            self.wizard.velocity = self.wizard.velocity * 62 / 64;
+            self.wizard.velocity = self.wizard.update_position(level);
 
             if self.wizard.velocity.x.abs() > FixedNumberType::new(1) / 16 {
                 let offset = (ping_pong(timer / 16, 4)) as u16;
@@ -199,14 +237,6 @@ impl<'a> Player<'a> {
             if input.x_tri() != agb::input::Tri::Zero {
                 self.facing = input.x_tri();
             }
-
-            self.wizard.velocity = self.wizard.velocity * 62 / 64;
-            self.wizard.update_position();
-            self.wizard.position.y = self
-                .wizard
-                .position
-                .y
-                .clamp((-8).into(), (HEIGHT - 8).into());
         }
 
         match self.facing {
@@ -250,7 +280,7 @@ impl<'a> Player<'a> {
                 } else {
                     self.hat.velocity += direction / 4;
                 }
-                self.hat.update_position();
+                self.hat.update_position(level);
                 if distance > 16.into() {
                     self.hat_left_range = true;
                 }
@@ -274,7 +304,7 @@ impl<'a> Player<'a> {
                 if distance != 0.into() {
                     self.wizard.velocity += distance_vector / distance;
                 }
-                self.wizard.update_position();
+                self.wizard.update_position(level);
                 if distance < 8.into() {
                     self.wizard.velocity = self.wizard.velocity / 8;
                     self.hat_state = HatState::OnHead;
@@ -299,8 +329,12 @@ impl<'a> PlayingLevel<'a> {
         foreground: &'a mut Background,
         input: ButtonController,
     ) -> Self {
-        background.draw_full_map(level.background, level.dimensions);
+        background.draw_full_map(level.foreground, level.dimensions);
         background.show();
+
+        foreground.draw_full_map(level.background, level.dimensions);
+        foreground.set_priority(Priority::P2);
+        foreground.show();
 
         PlayingLevel {
             timer: 0,
@@ -319,7 +353,8 @@ impl<'a> PlayingLevel<'a> {
         self.timer += 1;
         self.input.update();
 
-        self.player.update_frame(&self.input, self.timer);
+        self.player
+            .update_frame(&self.input, self.timer, &self.background.level);
 
         self.player.wizard.commit_position(self.background.position);
         self.player.hat.commit_position(self.background.position);
@@ -343,10 +378,10 @@ pub fn main() -> ! {
 
     let mut level = PlayingLevel::open_level(
         Level {
-            foreground: &map_tiles::level1::TILEMAP,
-            background: &map_tiles::level1::BACKGROUND,
+            background: &map_tiles::level1::TILEMAP,
+            foreground: &map_tiles::level1::BACKGROUND,
             dimensions: (map_tiles::level1::WIDTH, map_tiles::level1::HEIGHT).into(),
-            collision: &[],
+            collision: &map_tiles::tilemap::TILE_DATA,
         },
         &object,
         &mut background,
