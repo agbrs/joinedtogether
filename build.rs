@@ -129,6 +129,7 @@ mod tiled_export {
             .map(|object| (&object.object_type, (object.x, object.y)));
         let mut snails = vec![];
         let mut slimes = vec![];
+        let mut enemy_stops = vec![];
         let mut player_start = None;
 
         for (object_type, (x, y)) in objects {
@@ -136,6 +137,7 @@ mod tiled_export {
                 "Snail Spawn" => snails.push((x, y)),
                 "Slime Spawn" => slimes.push((x, y)),
                 "Player Start" => player_start = Some((x, y)),
+                "Enemy Stop" => enemy_stops.push((x, y)),
                 _ => panic!("Unknown object type {}", object_type),
             }
         }
@@ -152,6 +154,11 @@ mod tiled_export {
             .map(|slime| format!("({}, {})", slime.0, slime.1))
             .collect::<Vec<_>>()
             .join(", ");
+        let enemy_stop_str = enemy_stops
+            .iter()
+            .map(|enemy_stop| format!("({}, {})", enemy_stop.0, enemy_stop.1))
+            .collect::<Vec<_>>()
+            .join(", ");
 
         writeln!(
             &mut writer,
@@ -162,6 +169,11 @@ mod tiled_export {
             &mut writer,
             "pub const SLIMES: &[(i32, i32)] = &[{}];",
             slimes_str
+        )?;
+        writeln!(
+            &mut writer,
+            "pub const ENEMY_STOPS: &[(i32, i32)] = &[{}];",
+            enemy_stop_str
         )?;
         writeln!(
             &mut writer,
