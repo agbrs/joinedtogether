@@ -1,7 +1,7 @@
 use super::{object_tiles, Entity, FixedNumberType, HatState, Level};
 use agb::{
     display::object::{ObjectControl, Size},
-    number::{Rect, Vector2D},
+    number::Vector2D,
 };
 
 enum UpdateState {
