@@ -61,7 +61,7 @@ impl<'a> Entity<'a> {
         }
     }
 
-    fn collision_at_point(&mut self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+    fn collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
         let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
         let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
         let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
