@@ -43,6 +43,13 @@ impl<'a> Enemy<'a> {
         Enemy::Snail(Snail::new(object, start_pos))
     }
 
+    pub fn collides_with_hat(&self, position: Vector2D<FixedNumberType>) -> bool {
+        match self {
+            Enemy::Snail(snail) => snail.collides_with(position),
+            _ => false,
+        }
+    }
+
     pub fn update(
         &mut self,
         level: &Level,

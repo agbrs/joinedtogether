@@ -119,13 +119,8 @@ impl<'a> Entity<'a> {
         position: Vector2D<FixedNumberType>,
     ) -> bool {
         for enemy in enemies {
-            match enemy {
-                enemies::Enemy::Snail(snail) => {
-                    if snail.collides_with(position) {
-                        return true;
-                    }
-                }
-                _ => {}
+            if enemy.collides_with_hat(position) {
+                return true;
             }
         }
         false
