@@ -472,16 +472,21 @@ impl<'a> PlayingLevel<'a> {
         self.timer += 1;
         self.input.update();
 
+        let mut player_dead = false;
+
         self.player
             .update_frame(&self.input, self.timer, &self.background.level);
 
         for enemy in self.enemies.iter_mut() {
-            enemy.update(
+            match enemy.update(
                 &self.background.level,
                 self.player.wizard.position,
                 self.player.hat_state,
                 self.timer,
-            );
+            ) {
+                enemies::EnemyUpdateState::KillPlayer => player_dead = true,
+                enemies::EnemyUpdateState::None => {}
+            }
         }
 
         self.background.position = self.get_next_map_position();
@@ -494,11 +499,11 @@ impl<'a> PlayingLevel<'a> {
             enemy.commit(self.background.position);
         }
 
-        if self
+        player_dead |= self
             .player
             .wizard
-            .killision_at_point(&self.background.level, self.player.wizard.position)
-        {
+            .killision_at_point(&self.background.level, self.player.wizard.position);
+        if player_dead {
             UpdateState::Dead
         } else {
             UpdateState::Normal
@@ -550,6 +555,8 @@ pub fn main() -> ! {
     let vblank = agb.display.vblank.get();
 
     loop {
+        let mut button_controller = agb::input::ButtonController::new();
+        button_controller.update();
         let mut level = PlayingLevel::open_level(
             Level {
                 background: &map_tiles::level1::TILEMAP,
@@ -560,7 +567,7 @@ pub fn main() -> ! {
             &object,
             &mut background,
             &mut foreground,
-            agb::input::ButtonController::new(),
+            button_controller,
         );
         loop {
             match level.update_frame() {
