@@ -103,53 +103,17 @@ impl<'a> Entity<'a> {
         false
     }
 
-    fn lr_stopping_point(
-        &self,
-        position: Vector2D<FixedNumberType>,
-        direction: i32,
-    ) -> FixedNumberType {
-        let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
-        let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
-
-        if direction < 0 {
-            (left * 8 + self.collision_mask.x as i32 / 2 + 8).into()
-        } else {
-            (right * 8 - self.collision_mask.x as i32 / 2).into()
-        }
-    }
-
-    fn tb_stopping_point(
-        &self,
-        position: Vector2D<FixedNumberType>,
-        direction: i32,
-    ) -> FixedNumberType {
-        let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
-        let bottom = (position.y + self.collision_mask.y as i32 / 2).floor() / 8;
-
-        if direction < 0 {
-            (top * 8 + self.collision_mask.y as i32 / 2 + 8).into()
-        } else {
-            (bottom * 8 - self.collision_mask.y as i32 / 2).into()
-        }
-    }
-
     // returns the distance actually moved
     fn update_position(&mut self, level: &Level) -> Vector2D<FixedNumberType> {
         let old_position = self.position;
         let x_velocity = (self.velocity.x, 0.into()).into();
         if !self.lr_collision_at_point(level, self.position + x_velocity) {
             self.position += x_velocity;
-        } else {
-            self.position.x =
-                self.lr_stopping_point(self.position + x_velocity, x_velocity.x.to_raw());
         }
 
         let y_velocity = (0.into(), self.velocity.y).into();
         if !self.tb_collision_at_point(level, self.position + y_velocity) {
             self.position += y_velocity;
-        } else {
-            self.position.y =
-                self.tb_stopping_point(self.position + y_velocity, y_velocity.y.to_raw());
         }
 
         self.position - old_position
