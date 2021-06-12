@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+mod enemies;
+
 struct Level {
     background: &'static [u16],
     foreground: &'static [u16],
@@ -13,6 +15,11 @@ mod object_tiles {
     pub const WIZARD_JUMP: u16 = 4 * 4;
     pub const WIZARD_FALL_START: u16 = 5 * 4;
     pub const HAT_TILE_START: u16 = 9 * 4;
+
+    pub const SLIME_IDLE_START: u16 = 19 * 4;
+    pub const SLIME_JUMP_START: u16 = 20 * 4;
+    pub const SLIME_SPLAT_START: u16 = 24 * 4;
+
     include!(concat!(env!("OUT_DIR"), "/object_sheet.rs"));
 }
 
@@ -42,7 +49,7 @@ use agb::{
 
 type FixedNumberType = FixedNum<10>;
 
-struct Entity<'a> {
+pub struct Entity<'a> {
     sprite: ObjectStandard<'a>,
     position: Vector2D<FixedNumberType>,
     velocity: Vector2D<FixedNumberType>,
@@ -50,7 +57,7 @@ struct Entity<'a> {
 }
 
 impl<'a> Entity<'a> {
-    fn new(object: &'a ObjectControl, collision_mask: Vector2D<u16>) -> Self {
+    pub fn new(object: &'a ObjectControl, collision_mask: Vector2D<u16>) -> Self {
         let mut sprite = object.get_object_standard();
         sprite.set_priority(Priority::P1);
         Entity {
