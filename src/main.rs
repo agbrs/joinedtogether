@@ -3,10 +3,16 @@
 
 mod chickenmap;
 
+struct Level {
+    content: &'static [u16],
+    dimensions: Vector2D<u32>,
+    collision: &'static [u8],
+}
+
 mod object_tiles {
 
-    pub const WIZARD_TILE_START: u16 = 4;
-    pub const HAT_TILE_START: u16 = 0;
+    pub const WIZARD_TILE_START: u16 = 0;
+    pub const HAT_TILE_START: u16 = 9 * 4;
     include!(concat!(env!("OUT_DIR"), "/object_sheet.rs"));
 }
 
@@ -16,9 +22,10 @@ use agb::{
         tiled0::Background,
         HEIGHT, WIDTH,
     },
-    input::{Button, ButtonController},
+    input::{self, Button, ButtonController},
     number::{FixedNum, Vector2D},
 };
+use object_tiles::HAT_TILE_START;
 
 type FixedNumberType = FixedNum<10>;
 
@@ -54,20 +61,14 @@ impl<'a> Entity<'a> {
 }
 
 struct Map<'a> {
-    layer: &'a Background,
+    layer: &'a mut Background,
     position: Vector2D<FixedNumberType>,
-    map: &'a [u16],
-    dimensions: Vector2D<u32>,
+    level: Level,
 }
 
-struct ColisionMap<'a> {
-    collider: &'a [u8],
-    dimensions: Vector2D<u32>,
-}
-
-impl<'a> ColisionMap<'a> {
+impl Level {
     fn collides(&self, x: u32, y: u32) -> bool {
-        let tile = self.collider[(self.dimensions.x * y + x) as usize];
+        let tile = self.collision[(self.dimensions.x * y + x) as usize];
         tile != 0
     }
 }
@@ -85,6 +86,8 @@ struct Player<'a> {
     hat_state: HatState,
     hat_left_range: bool,
     hat_slow_counter: i32,
+    wizard_frame: u8,
+    facing: input::Tri,
 }
 
 fn ping_pong(i: i32, n: i32) -> i32 {
@@ -120,6 +123,8 @@ impl<'a> Player<'a> {
             hat_slow_counter: 0,
             hat_state: HatState::OnHead,
             hat_left_range: false,
+            wizard_frame: 0,
+            facing: input::Tri::Zero,
         }
     }
 
@@ -130,7 +135,11 @@ impl<'a> Player<'a> {
                 let direction: Vector2D<FixedNumberType> =
                     (input.x_tri() as i32, input.y_tri() as i32).into();
                 if direction != (0, 0).into() {
-                    self.hat.velocity = direction.normalise() * 5;
+                    let mut velocity = direction.normalise() * 5;
+                    if velocity.y > 0.into() {
+                        velocity.y *= FixedNumberType::new(4) / 3;
+                    }
+                    self.hat.velocity = velocity;
                     self.hat_state = HatState::Thrown;
                 }
             } else if self.hat_state == HatState::Thrown {
@@ -147,25 +156,16 @@ impl<'a> Player<'a> {
             self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 64;
 
             if self.wizard.velocity.x.abs() > FixedNumberType::new(1) / 16 {
-                let offset = (8 * ping_pong(timer / 16, 4)) as u16;
+                let offset = (ping_pong(timer / 16, 4)) as u16;
+                self.wizard_frame = offset as u8;
+
                 self.wizard
                     .sprite
-                    .set_tile_id(object_tiles::WIZARD_TILE_START + offset);
-                self.hat
-                    .sprite
-                    .set_tile_id(object_tiles::HAT_TILE_START + offset);
+                    .set_tile_id(object_tiles::WIZARD_TILE_START + offset * 4);
             }
 
-            match input.x_tri() {
-                agb::input::Tri::Negative => {
-                    self.wizard.sprite.set_hflip(true);
-                    self.hat.sprite.set_hflip(true);
-                }
-                agb::input::Tri::Positive => {
-                    self.wizard.sprite.set_hflip(false);
-                    self.hat.sprite.set_hflip(false);
-                }
-                _ => {}
+            if input.x_tri() != agb::input::Tri::Zero {
+                self.facing = input.x_tri();
             }
 
             self.wizard.velocity = self.wizard.velocity * 62 / 64;
@@ -177,16 +177,40 @@ impl<'a> Player<'a> {
                 .clamp((-8).into(), (HEIGHT - 8).into());
         }
 
+        match self.facing {
+            agb::input::Tri::Negative => {
+                self.wizard.sprite.set_hflip(true);
+                self.hat
+                    .sprite
+                    .set_tile_id(object_tiles::HAT_TILE_START + 4 * 5);
+            }
+            agb::input::Tri::Positive => {
+                self.wizard.sprite.set_hflip(false);
+                self.hat.sprite.set_tile_id(object_tiles::HAT_TILE_START);
+            }
+            _ => {}
+        }
+
+        let hat_resting_position = match self.wizard_frame {
+            1 | 2 => (0, 9).into(),
+            _ => (0, 8).into(),
+        };
+
         match self.hat_state {
             HatState::Thrown => {
                 // hat is thrown, make hat move towards wizard
-                let distance_vector = self.wizard.position - self.hat.position - (0, 10).into();
+                let distance_vector =
+                    self.wizard.position - self.hat.position - hat_resting_position;
                 let distance = distance_vector.magnitude();
                 let direction = if distance == 0.into() {
                     (0, 0).into()
                 } else {
                     distance_vector / distance
                 };
+
+                self.hat
+                    .sprite
+                    .set_tile_id(object_tiles::HAT_TILE_START + 4 * (timer / 2 % 10) as u16);
 
                 if self.hat_slow_counter < 10 && self.hat.velocity.magnitude() < 2.into() {
                     self.hat.velocity = (0, 0).into();
@@ -206,10 +230,14 @@ impl<'a> Player<'a> {
                 // hat is on head, place hat on head
                 self.hat_slow_counter = 0;
                 self.hat_left_range = false;
-                self.hat.position = self.wizard.position - (0, 10).into();
+                self.hat.position = self.wizard.position - hat_resting_position;
             }
             HatState::WizardTowards => {
-                let distance_vector = self.hat.position - self.wizard.position + (0, 10).into();
+                self.hat
+                    .sprite
+                    .set_tile_id(object_tiles::HAT_TILE_START + 4 * (timer / 2 % 10) as u16);
+                let distance_vector =
+                    self.hat.position - self.wizard.position + hat_resting_position;
                 let distance = distance_vector.magnitude();
                 if distance != 0.into() {
                     self.wizard.velocity += distance_vector / distance;
@@ -233,21 +261,19 @@ struct PlayingLevel<'a> {
 
 impl<'a> PlayingLevel<'a> {
     fn open_level(
-        level: &'a [u16],
-        level_dimensions: Vector2D<u32>,
+        level: Level,
         object_control: &'a ObjectControl,
         background: &'a mut Background,
         input: ButtonController,
     ) -> Self {
-        background.draw_full_map(level, level_dimensions);
+        background.draw_full_map(level.content, level.dimensions);
         background.show();
 
         PlayingLevel {
             timer: 0,
             background: Map {
                 layer: background,
-                map: level,
-                dimensions: level_dimensions,
+                level,
                 position: (0, 0).into(),
             },
             player: Player::new(object_control),
@@ -260,6 +286,7 @@ impl<'a> PlayingLevel<'a> {
         self.input.update();
 
         self.player.update_frame(&self.input, self.timer);
+
         self.player.wizard.commit_position(self.background.position);
         self.player.hat.commit_position(self.background.position);
     }
@@ -280,8 +307,11 @@ pub fn main() -> ! {
     object.enable();
 
     let mut level = PlayingLevel::open_level(
-        &chickenmap::MAP_MAP,
-        (32_u32, 32_u32).into(),
+        Level {
+            content: &chickenmap::MAP_MAP,
+            dimensions: (32_u32, 32_u32).into(),
+            collision: &[],
+        },
         &object,
         &mut background,
         agb::input::ButtonController::new(),
