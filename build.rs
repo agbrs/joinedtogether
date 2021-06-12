@@ -182,12 +182,12 @@ mod tiled_export {
             r#"
             use crate::Level;
 
-            pub fn get_level(collision: &'static [u32]) -> Level {{
+            pub fn get_level() -> Level {{
                 Level {{
                     background: &TILEMAP,
                     foreground: &BACKGROUND,
                     dimensions: (WIDTH, HEIGHT).into(),
-                    collision,
+                    collision: &crate::map_tiles::tilemap::TILE_DATA,
     
                     enemy_stops: &ENEMY_STOPS,
                     slimes: &SLIMES,

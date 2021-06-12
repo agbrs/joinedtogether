@@ -657,7 +657,7 @@ pub fn main() -> ! {
         world_display.show();
 
         let mut level = PlayingLevel::open_level(
-            map_tiles::level1::get_level(&map_tiles::tilemap::TILE_DATA),
+            map_tiles::level1::get_level(),
             &object,
             &mut background,
             &mut foreground,
