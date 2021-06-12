@@ -112,14 +112,10 @@ mod tiled_export {
             .collect::<Vec<_>>()
             .join(", ");
 
-        writeln!(&mut writer, "pub const WIDTH: u32 = {};", level.width)?;
-        writeln!(&mut writer, "pub const HEIGHT: u32 = {};", level.height)?;
-        writeln!(&mut writer, "pub const TILEMAP: &[u16] = &[{}];", layer_1)?;
-        writeln!(
-            &mut writer,
-            "pub const BACKGROUND: &[u16] = &[{}];",
-            layer_2
-        )?;
+        writeln!(&mut writer, "const WIDTH: u32 = {};", level.width)?;
+        writeln!(&mut writer, "const HEIGHT: u32 = {};", level.height)?;
+        writeln!(&mut writer, "const TILEMAP: &[u16] = &[{}];", layer_1)?;
+        writeln!(&mut writer, "const BACKGROUND: &[u16] = &[{}];", layer_2)?;
 
         let objects = level.layers[2]
             .objects
@@ -162,23 +158,44 @@ mod tiled_export {
 
         writeln!(
             &mut writer,
-            "pub const SNAILS: &[(i32, i32)] = &[{}];",
+            "const SNAILS: &[(i32, i32)] = &[{}];",
             snails_str
         )?;
         writeln!(
             &mut writer,
-            "pub const SLIMES: &[(i32, i32)] = &[{}];",
+            "const SLIMES: &[(i32, i32)] = &[{}];",
             slimes_str
         )?;
         writeln!(
             &mut writer,
-            "pub const ENEMY_STOPS: &[(i32, i32)] = &[{}];",
+            "const ENEMY_STOPS: &[(i32, i32)] = &[{}];",
             enemy_stop_str
         )?;
         writeln!(
             &mut writer,
-            "pub const START_POS: (i32, i32) = ({}, {});",
+            "const START_POS: (i32, i32) = ({}, {});",
             player_start.0, player_start.1
+        )?;
+
+        writeln!(
+            &mut writer,
+            r#"
+            use crate::Level;
+
+            pub fn get_level(collision: &'static [u32]) -> Level {{
+                Level {{
+                    background: &TILEMAP,
+                    foreground: &BACKGROUND,
+                    dimensions: (WIDTH, HEIGHT).into(),
+                    collision,
+    
+                    enemy_stops: &ENEMY_STOPS,
+                    slimes: &SLIMES,
+                    snails: &SNAILS,
+                    start_pos: START_POS,
+                }}
+            }}
+            "#
         )?;
 
         Ok(())

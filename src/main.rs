@@ -657,17 +657,7 @@ pub fn main() -> ! {
         world_display.show();
 
         let mut level = PlayingLevel::open_level(
-            Level {
-                background: &map_tiles::level1::TILEMAP,
-                foreground: &map_tiles::level1::BACKGROUND,
-                dimensions: (map_tiles::level1::WIDTH, map_tiles::level1::HEIGHT).into(),
-                collision: &map_tiles::tilemap::TILE_DATA,
-
-                enemy_stops: &map_tiles::level1::ENEMY_STOPS,
-                slimes: &map_tiles::level1::SLIMES,
-                snails: &map_tiles::level1::SNAILS,
-                start_pos: map_tiles::level1::START_POS,
-            },
+            map_tiles::level1::get_level(&map_tiles::tilemap::TILE_DATA),
             &object,
             &mut background,
             &mut foreground,
