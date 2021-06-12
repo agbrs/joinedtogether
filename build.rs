@@ -10,4 +10,132 @@ fn main() {
             .output_file(format!("{}/object_sheet.rs", out_dir).into())
             .build(),
     );
+
+    convert_image(
+        ImageConverterConfig::builder()
+            .tile_size(TileSize::Tile8)
+            .transparent_colour(Colour::from_rgb(44, 232, 244))
+            .input_image("gfx/tile_sheet.png".into())
+            .output_file(format!("{}/tile_sheet.rs", out_dir).into())
+            .build(),
+    );
+
+    tiled_export::export_tilemap(&out_dir).expect("Failed to export tilemap");
+    tiled_export::export_level(&out_dir, "level1.json").expect("Failed to export level");
+}
+
+mod tiled_export {
+    use serde::Deserialize;
+    use std::collections::HashMap;
+    use std::fs::File;
+    use std::io::{BufReader, BufWriter, Write};
+
+    pub fn export_tilemap(out_dir: &str) -> std::io::Result<()> {
+        const COLLISION_TILE: i32 = 1;
+        const KILL_TILE: i32 = 2;
+
+        let file = File::open("map/tilemap.json")?;
+        let reader = BufReader::new(file);
+
+        let tilemap: TiledTilemap = serde_json::from_reader(reader)?;
+
+        let output_file = File::create(format!("{}/tilemap.rs", out_dir))?;
+        let mut writer = BufWriter::new(output_file);
+
+        let tile_data: HashMap<_, _> = tilemap
+            .tiles
+            .iter()
+            .map(|tile| {
+                (
+                    tile.id,
+                    match tile.tile_type.as_str() {
+                        "Collision" => COLLISION_TILE,
+                        "Kill" => KILL_TILE,
+                        _ => 0,
+                    },
+                )
+            })
+            .collect();
+
+        let tile_info = (0..tilemap.tilecount)
+            .map(|id| *tile_data.get(&id).unwrap_or(&0))
+            .map(|tile_type| tile_type.to_string())
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        writeln!(
+            &mut writer,
+            "pub const COLLISION_TILE: i32 = {};",
+            COLLISION_TILE
+        )?;
+
+        writeln!(&mut writer, "pub const KILL_TILE: i32 = {};", KILL_TILE)?;
+
+        writeln!(
+            &mut writer,
+            "pub const TILE_DATA: &[u32] = &[{}];",
+            tile_info
+        )?;
+
+        Ok(())
+    }
+
+    pub fn export_level(out_dir: &str, level_file: &str) -> std::io::Result<()> {
+        let file = File::open(format!("map/{}", level_file))?;
+        let reader = BufReader::new(file);
+
+        let level: TiledLevel = serde_json::from_reader(reader)?;
+
+        let output_file = File::create(format!("{}/{}.rs", out_dir, level_file))?;
+        let mut writer = BufWriter::new(output_file);
+
+        let layer_1 = level.layers[0]
+            .data
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        let layer_2 = level.layers[1]
+            .data
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        writeln!(&mut writer, "pub const WIDTH: i32 = {};", level.width)?;
+        writeln!(&mut writer, "pub const HEIGHT: i32 = {};", level.height)?;
+        writeln!(&mut writer, "pub const TILEMAP: &[u16] = &[{}];", layer_1)?;
+        writeln!(
+            &mut writer,
+            "pub const BACKGROUND: &[u16] = &[{}];",
+            layer_2
+        )?;
+
+        Ok(())
+    }
+
+    #[derive(Deserialize)]
+    struct TiledLevel {
+        layers: Vec<TiledLayer>,
+        width: i32,
+        height: i32,
+    }
+
+    #[derive(Deserialize)]
+    struct TiledLayer {
+        data: Vec<i32>,
+    }
+
+    #[derive(Deserialize)]
+    struct TiledTilemap {
+        tiles: Vec<TiledTile>,
+        tilecount: i32,
+    }
+
+    #[derive(Deserialize)]
+    struct TiledTile {
+        id: i32,
+        #[serde(rename = "type")]
+        tile_type: String,
+    }
 }
