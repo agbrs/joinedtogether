@@ -2,6 +2,7 @@
 #![no_main]
 
 mod enemies;
+mod level_display;
 
 pub struct Level {
     background: &'static [u16],
@@ -172,11 +173,13 @@ impl<'a> Map<'a> {
             self.level.foreground,
             self.level.dimensions,
             self.position.floor(),
+            0,
         );
         self.foreground.set_position(
             self.level.background,
             self.level.dimensions,
             self.position.floor(),
+            0,
         );
     }
 }
@@ -461,12 +464,12 @@ impl<'a> PlayingLevel<'a> {
         foreground: &'a mut Background,
         input: ButtonController,
     ) -> Self {
-        background.set_position(level.foreground, level.dimensions, (0, 0).into());
-        background.draw_full_map(level.foreground, level.dimensions);
+        background.set_position(level.foreground, level.dimensions, (0, 0).into(), 0);
+        background.draw_full_map(level.foreground, level.dimensions, 0);
         background.show();
 
-        foreground.set_position(level.background, level.dimensions, (0, 0).into());
-        foreground.draw_full_map(level.background, level.dimensions);
+        foreground.set_position(level.background, level.dimensions, (0, 0).into(), 0);
+        foreground.draw_full_map(level.background, level.dimensions, 0);
         foreground.set_priority(Priority::P2);
         foreground.show();
 
@@ -567,6 +570,8 @@ pub fn main() -> ! {
     tiled.set_sprite_palettes(object_tiles::PALETTE_DATA);
     tiled.set_sprite_tilemap(object_tiles::TILE_DATA);
 
+    let mut world_display = tiled.get_background().unwrap();
+
     let mut background = tiled.get_background().unwrap();
     let mut foreground = tiled.get_background().unwrap();
     object.enable();
@@ -574,6 +579,9 @@ pub fn main() -> ! {
     let vblank = agb.display.vblank.get();
 
     loop {
+        level_display::write_level(&mut world_display, 1, 1);
+        world_display.show();
+
         let mut level = PlayingLevel::open_level(
             Level {
                 background: &map_tiles::level1::TILEMAP,
@@ -586,6 +594,12 @@ pub fn main() -> ! {
             &mut foreground,
             agb::input::ButtonController::new(),
         );
+
+        for _ in 0..60 {
+            vblank.wait_for_VBlank();
+        }
+        world_display.hide();
+
         loop {
             match level.update_frame() {
                 UpdateState::Normal => {}
