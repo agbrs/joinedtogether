@@ -110,6 +110,21 @@ struct Map<'a> {
     level: Level,
 }
 
+impl<'a> Map<'a> {
+    pub fn commit_position(&mut self) {
+        self.background.set_position(
+            self.level.foreground,
+            self.level.dimensions,
+            self.position.floor(),
+        );
+        self.foreground.set_position(
+            self.level.background,
+            self.level.dimensions,
+            self.position.floor(),
+        );
+    }
+}
+
 impl Level {
     fn collides(&self, x: i32, y: i32) -> bool {
         if (x < 0 || x >= self.dimensions.x as i32) || (y < 0 || y >= self.dimensions.y as i32) {
@@ -356,9 +371,37 @@ impl<'a> PlayingLevel<'a> {
 
         self.player
             .update_frame(&self.input, self.timer, &self.background.level);
+        self.background.position = self.get_next_map_position();
+        self.background.commit_position();
 
         self.player.wizard.commit_position(self.background.position);
         self.player.hat.commit_position(self.background.position);
+    }
+
+    fn get_next_map_position(&self) -> Vector2D<FixedNumberType> {
+        // want to ensure the player and the hat are visible if possible, so try to position the map
+        // so the centre is at the average position. But give the player some extra priority
+        let hat_pos = self.player.hat.position;
+        let player_pos = self.player.wizard.position;
+
+        let new_target_position = (hat_pos + player_pos * 3) / 4;
+
+        let screen: Vector2D<FixedNumberType> = (WIDTH, HEIGHT).into();
+        let half_screen = screen / 2;
+        let current_centre = self.background.position + half_screen;
+
+        let mut target_position = ((current_centre * 3 + new_target_position) / 4) - half_screen;
+
+        target_position.x = target_position.x.clamp(
+            0.into(),
+            ((self.background.level.dimensions.x * 8 - (WIDTH as u32)) as i32).into(),
+        );
+        target_position.y = target_position.y.clamp(
+            0.into(),
+            ((self.background.level.dimensions.y * 8 - (HEIGHT as u32)) as i32).into(),
+        );
+
+        target_position
     }
 }
 
