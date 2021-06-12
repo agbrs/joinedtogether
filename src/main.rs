@@ -108,6 +108,24 @@ impl<'a> Entity<'a> {
         false
     }
 
+    fn enemy_collision_at_point(
+        &self,
+        enemies: &[enemies::Enemy],
+        position: Vector2D<FixedNumberType>,
+    ) -> bool {
+        for enemy in enemies {
+            match enemy {
+                enemies::Enemy::Snail(snail) => {
+                    if snail.collides_with(position) {
+                        return true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        false
+    }
+
     // returns the distance actually moved
     fn update_position(&mut self, level: &Level) -> Vector2D<FixedNumberType> {
         let old_position = self.position;
@@ -123,6 +141,34 @@ impl<'a> Entity<'a> {
             self.position += y_velocity;
         } else {
             self.position += self.binary_search_collision(level, (0, 1).into(), self.velocity.y);
+        }
+
+        self.position - old_position
+    }
+
+    fn update_position_with_enemy(
+        &mut self,
+        level: &Level,
+        enemies: &[enemies::Enemy],
+    ) -> Vector2D<FixedNumberType> {
+        let old_position = self.position;
+        let x_velocity = (self.velocity.x, 0.into()).into();
+
+        if !(self.collision_at_point(level, self.position + x_velocity)
+            || self.enemy_collision_at_point(enemies, self.position + x_velocity))
+        {
+            self.position += x_velocity;
+        } else if self.enemy_collision_at_point(enemies, self.position + x_velocity) {
+            self.position -= x_velocity;
+        }
+
+        let y_velocity = (0.into(), self.velocity.y).into();
+        if !(self.collision_at_point(level, self.position + y_velocity)
+            || self.enemy_collision_at_point(enemies, self.position + y_velocity))
+        {
+            self.position += y_velocity;
+        } else if self.enemy_collision_at_point(enemies, self.position + y_velocity) {
+            self.position -= y_velocity;
         }
 
         self.position - old_position
@@ -269,7 +315,13 @@ impl<'a> Player<'a> {
         }
     }
 
-    fn update_frame(&mut self, input: &ButtonController, timer: i32, level: &Level) {
+    fn update_frame(
+        &mut self,
+        input: &ButtonController,
+        timer: i32,
+        level: &Level,
+        enemies: &[enemies::Enemy],
+    ) {
         // throw or recall
         if input.is_just_pressed(Button::A) {
             if self.hat_state == HatState::OnHead {
@@ -410,7 +462,7 @@ impl<'a> Player<'a> {
                 } else {
                     self.hat.velocity += direction / 4;
                 }
-                self.hat.velocity = self.hat.update_position(level);
+                self.hat.velocity = self.hat.update_position_with_enemy(level, enemies);
                 if distance > 16.into() {
                     self.hat_left_range = true;
                 }
@@ -500,8 +552,12 @@ impl<'a> PlayingLevel<'a> {
 
         let mut player_dead = false;
 
-        self.player
-            .update_frame(&self.input, self.timer, &self.background.level);
+        self.player.update_frame(
+            &self.input,
+            self.timer,
+            &self.background.level,
+            &self.enemies,
+        );
 
         for enemy in self.enemies.iter_mut() {
             match enemy.update(
