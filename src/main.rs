@@ -24,6 +24,10 @@ mod object_tiles {
     pub const SLIME_JUMP_START: u16 = 20 * 4;
     pub const SLIME_SPLAT_START: u16 = 24 * 4;
 
+    pub const SNAIL_IDLE_START: u16 = 48 * 4;
+    pub const SNAIL_EMERGE_START: u16 = 49 * 4;
+    pub const SNAIL_MOVE: u16 = 54 * 4;
+
     include!(concat!(env!("OUT_DIR"), "/object_sheet.rs"));
 }
 
@@ -474,7 +478,7 @@ impl<'a> PlayingLevel<'a> {
         foreground.show();
 
         let mut e: [enemies::Enemy<'a>; 16] = Default::default();
-        e[0] = enemies::Enemy::new_slime(object_control, (9 * 8, 17 * 8 + 1).into());
+        e[0] = enemies::Enemy::new_snail(object_control, (9 * 8, 17 * 8).into());
 
         PlayingLevel {
             timer: 0,
