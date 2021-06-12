@@ -152,6 +152,7 @@ struct Player<'a> {
     hat_left_range: bool,
     hat_slow_counter: i32,
     wizard_frame: u8,
+    num_recalls: i8,
     facing: input::Tri,
 }
 
@@ -189,6 +190,7 @@ impl<'a> Player<'a> {
             hat_state: HatState::OnHead,
             hat_left_range: false,
             wizard_frame: 0,
+            num_recalls: 0,
             facing: input::Tri::Zero,
         }
     }
@@ -208,22 +210,41 @@ impl<'a> Player<'a> {
                     self.hat_state = HatState::Thrown;
                 }
             } else if self.hat_state == HatState::Thrown {
-                self.hat.velocity = (0, 0).into();
-                self.wizard.velocity = (0, 0).into();
-                self.hat_state = HatState::WizardTowards;
+                self.num_recalls += 1;
+                if self.num_recalls < 3 {
+                    self.hat.velocity = (0, 0).into();
+                    self.wizard.velocity = (0, 0).into();
+                    self.hat_state = HatState::WizardTowards;
+                }
             } else if self.hat_state == HatState::WizardTowards {
                 self.hat_state = HatState::Thrown;
                 self.wizard.velocity /= 8;
             }
         }
 
-        if self.hat_state != HatState::WizardTowards {
-            let gravity: Vector2D<FixedNumberType> = (0, 1).into();
-            let gravity = gravity / 16;
-            self.wizard.velocity += gravity;
-            self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 64;
+        let is_on_ground = self
+            .wizard
+            .collision_at_point(level, self.wizard.position + (0, 1).into());
 
-            self.wizard.velocity = self.wizard.velocity * 62 / 64;
+        if self.hat_state != HatState::WizardTowards {
+            if is_on_ground {
+                self.num_recalls = 0;
+            }
+
+            if is_on_ground {
+                self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 16;
+                self.wizard.velocity = self.wizard.velocity * 54 / 64;
+                if input.is_just_pressed(Button::B) {
+                    self.wizard.velocity.y = -FixedNumberType::new(3) / 2;
+                }
+            } else {
+                self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 64;
+                self.wizard.velocity = self.wizard.velocity * 63 / 64;
+                let gravity: Vector2D<FixedNumberType> = (0, 1).into();
+                let gravity = gravity / 16;
+                self.wizard.velocity += gravity;
+            }
+
             self.wizard.velocity = self.wizard.update_position(level);
 
             if self.wizard.velocity.x.abs() > 0.into() {
@@ -237,7 +258,7 @@ impl<'a> Player<'a> {
 
             if self.wizard.velocity.y < -FixedNumberType::new(1) / 16 {
                 // going up
-                self.wizard_frame = 1;
+                self.wizard_frame = 5;
 
                 self.wizard.sprite.set_tile_id(object_tiles::WIZARD_JUMP);
             } else if self.wizard.velocity.y > FixedNumberType::new(1) / 16 {
@@ -271,6 +292,7 @@ impl<'a> Player<'a> {
 
         let hat_resting_position = match self.wizard_frame {
             1 | 2 => (0, 9).into(),
+            5 => (0, 10).into(),
             _ => (0, 8).into(),
         };
 
