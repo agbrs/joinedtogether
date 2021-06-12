@@ -71,27 +71,11 @@ impl<'a> Entity<'a> {
         }
     }
 
-    fn lr_collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+    fn collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
         let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
-        let right = (position.x + self.collision_mask.x as i32 / 2).floor() / 8;
-        let top = (position.y - self.collision_mask.y as i32 / 2 + 1).floor() / 8;
-        let bottom = (position.y + self.collision_mask.y as i32 / 2 - 1).floor() / 8;
-
-        for x in left..=right {
-            for y in top..=bottom {
-                if level.collides(x, y) {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-
-    fn tb_collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
-        let left = (position.x - self.collision_mask.x as i32 / 2 + 1).floor() / 8;
         let right = (position.x + self.collision_mask.x as i32 / 2 - 1).floor() / 8;
         let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
-        let bottom = (position.y + self.collision_mask.y as i32 / 2).floor() / 8;
+        let bottom = (position.y + self.collision_mask.y as i32 / 2 - 1).floor() / 8;
 
         for x in left..=right {
             for y in top..=bottom {
@@ -123,17 +107,54 @@ impl<'a> Entity<'a> {
     fn update_position(&mut self, level: &Level) -> Vector2D<FixedNumberType> {
         let old_position = self.position;
         let x_velocity = (self.velocity.x, 0.into()).into();
-        if !self.lr_collision_at_point(level, self.position + x_velocity) {
+        if !self.collision_at_point(level, self.position + x_velocity) {
             self.position += x_velocity;
+        } else {
+            self.position += self.binary_search_collision(level, (1, 0).into(), self.velocity.x);
         }
 
         let y_velocity = (0.into(), self.velocity.y).into();
-        if !self.tb_collision_at_point(level, self.position + y_velocity) {
+        if !self.collision_at_point(level, self.position + y_velocity) {
             self.position += y_velocity;
+        } else {
+            self.position += self.binary_search_collision(level, (0, 1).into(), self.velocity.y);
         }
 
         self.position - old_position
     }
+
+    fn binary_search_collision(
+        &self,
+        level: &Level,
+        unit_vector: Vector2D<FixedNumberType>,
+        initial: FixedNumberType,
+    ) -> Vector2D<FixedNumberType> {
+        let mut low: FixedNumberType = 0.into();
+        let mut high = initial;
+
+        let one: FixedNumberType = 1.into();
+        while (high - low).abs() > one / 8 {
+            let mid = (low + high) / 2;
+            let new_vel: Vector2D<FixedNumberType> = unit_vector * mid;
+
+            if self.collision_at_point(level, self.position + new_vel) {
+                high = mid;
+            } else {
+                low = mid;
+            }
+        }
+
+        let mid = (low + high) / 2;
+
+        let potential = unit_vector * mid;
+
+        if self.collision_at_point(level, self.position + potential) {
+            (0, 0).into()
+        } else {
+            potential
+        }
+    }
+
     fn commit_position(&mut self, offset: Vector2D<FixedNumberType>) {
         let position = (self.position - offset).floor();
         self.sprite.set_position(position - (8, 8).into());
@@ -278,7 +299,7 @@ impl<'a> Player<'a> {
 
         let is_on_ground = self
             .wizard
-            .tb_collision_at_point(level, self.wizard.position + (0, 1).into());
+            .collision_at_point(level, self.wizard.position + (0, 1).into());
 
         if self.hat_state != HatState::WizardTowards {
             if is_on_ground {
