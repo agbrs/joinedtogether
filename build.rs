@@ -1,5 +1,7 @@
 use agb_image_converter::{convert_image, Colour, ImageConverterConfig, TileSize};
 
+const LEVELS: &[&str] = &["1-4.json"];
+
 fn main() {
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR environment variable must be specified");
     convert_image(
@@ -23,8 +25,9 @@ fn main() {
     println!("cargo:rerun-if-changed=gfx/tile_sheet.png");
 
     tiled_export::export_tilemap(&out_dir).expect("Failed to export tilemap");
-    tiled_export::export_level(&out_dir, "level0.json").expect("Failed to export level");
-    tiled_export::export_level(&out_dir, "level1.json").expect("Failed to export level");
+    for &level in LEVELS {
+        tiled_export::export_level(&out_dir, level).expect("Failed to export level");
+    }
 }
 
 mod tiled_export {
