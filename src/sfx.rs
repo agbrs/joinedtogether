@@ -29,6 +29,7 @@ mod effects {
     pub const LAND: &[u8] = include_bytes!("../sfx/land.raw");
 
     pub const SLIME_JUMP: &[u8] = include_bytes!("../sfx/slime-jump.raw");
+    pub const SLIME_DEATH: &[u8] = include_bytes!("../sfx/slime-death.raw");
 }
 
 pub struct MusicBox {
@@ -82,6 +83,11 @@ impl<'a> SfxPlayer<'a> {
     pub fn slime_jump(&mut self) {
         self.mixer
             .play_sound(SoundChannel::new(effects::SLIME_JUMP));
+    }
+
+    pub fn slime_death(&mut self) {
+        self.mixer
+            .play_sound(SoundChannel::new(effects::SLIME_DEATH));
     }
 
     pub fn land(&mut self) {

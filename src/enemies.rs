@@ -187,7 +187,7 @@ impl<'a> Slime<'a> {
             SlimeState::Jumping(jumping_start_frame) => {
                 let offset = (timer - jumping_start_frame) / 4;
 
-                if offset == 0 {
+                if timer == jumping_start_frame + 1 {
                     sfx_player.slime_jump();
                 }
 
@@ -212,6 +212,10 @@ impl<'a> Slime<'a> {
                 }
             }
             SlimeState::Dying(dying_start_frame) => {
+                if timer == dying_start_frame + 1 {
+                    sfx_player.slime_death();
+                }
+
                 let offset = (timer - dying_start_frame) / 4;
                 self.enemy_info.entity.velocity = (0, 0).into();
 
