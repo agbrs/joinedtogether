@@ -775,80 +775,92 @@ impl<'a> PlayingLevel<'a> {
 pub fn main() -> ! {
     let mut agb = agb::Gba::new();
 
-    splash_screen::show_splash_screen(&mut agb);
-
-    let mut tiled = agb.display.video.tiled0();
-    let mut object = agb.display.object.get();
-    let mut mixer = agb.mixer.mixer();
-
-    tiled.set_background_palettes(&map_tiles::tiles::PALETTE_DATA);
-    tiled.set_background_tilemap(0, &map_tiles::tiles::TILE_DATA);
-    tiled.set_sprite_palettes(object_tiles::PALETTE_DATA);
-    tiled.set_sprite_tilemap(object_tiles::TILE_DATA);
-
-    let mut world_display = tiled.get_background().unwrap();
-
-    let mut background = tiled.get_background().unwrap();
-    let mut foreground = tiled.get_background().unwrap();
-    object.enable();
-
-    mixer.enable();
-    let mut music_box = sfx::MusicBox::new();
-
-    let vblank = agb.display.vblank.get();
-    let mut current_level = 0;
+    splash_screen::show_splash_screen(&mut agb, splash_screen::SplashScreen::Start, None, None);
 
     loop {
-        current_level %= map_tiles::LEVELS.len() as u32;
-        level_display::write_level(
-            &mut world_display,
-            current_level / 8 + 1,
-            current_level % 8 + 1,
-        );
+        let mut tiled = agb.display.video.tiled0();
+        let mut object = agb.display.object.get();
+        let mut mixer = agb.mixer.mixer();
 
-        world_display.show();
+        tiled.set_background_palettes(&map_tiles::tiles::PALETTE_DATA);
+        tiled.set_background_tilemap(0, &map_tiles::tiles::TILE_DATA);
+        tiled.set_sprite_palettes(object_tiles::PALETTE_DATA);
+        tiled.set_sprite_tilemap(object_tiles::TILE_DATA);
 
-        let mut level = PlayingLevel::open_level(
-            &map_tiles::LEVELS[current_level as usize],
-            &object,
-            &mut background,
-            &mut foreground,
-            agb::input::ButtonController::new(),
-        );
+        let mut world_display = tiled.get_background().unwrap();
 
-        for i in 0..60 {
-            match i {
-                1 => level.load_1(),
-                2 => level.load_2(),
-                _ => {}
-            };
+        let mut background = tiled.get_background().unwrap();
+        let mut foreground = tiled.get_background().unwrap();
+        object.enable();
 
-            vblank.wait_for_VBlank();
-            music_box.after_blank(&mut mixer);
-            mixer.vblank();
-        }
-        world_display.hide();
+        mixer.enable();
+        let mut music_box = sfx::MusicBox::new();
+
+        let vblank = agb.display.vblank.get();
+        let mut current_level = 0;
 
         loop {
-            match level.update_frame(&mut sfx::SfxPlayer::new(&mut mixer, &music_box)) {
-                UpdateState::Normal => {}
-                UpdateState::Dead => {
-                    level.dead_start();
-                    while level.dead_update() {
-                        vblank.wait_for_VBlank();
-                        music_box.after_blank(&mut mixer);
-                        mixer.vblank();
-                    }
-                    break;
-                }
-                UpdateState::Complete => {
-                    current_level += 1;
-                    break;
-                }
+            if current_level == map_tiles::LEVELS.len() as u32 {
+                break;
             }
-            vblank.wait_for_VBlank();
-            music_box.after_blank(&mut mixer);
-            mixer.vblank();
+
+            level_display::write_level(
+                &mut world_display,
+                current_level / 8 + 1,
+                current_level % 8 + 1,
+            );
+
+            world_display.show();
+
+            let mut level = PlayingLevel::open_level(
+                &map_tiles::LEVELS[current_level as usize],
+                &object,
+                &mut background,
+                &mut foreground,
+                agb::input::ButtonController::new(),
+            );
+
+            for i in 0..60 {
+                match i {
+                    1 => level.load_1(),
+                    2 => level.load_2(),
+                    _ => {}
+                };
+
+                vblank.wait_for_VBlank();
+                music_box.after_blank(&mut mixer);
+                mixer.vblank();
+            }
+            world_display.hide();
+
+            loop {
+                match level.update_frame(&mut sfx::SfxPlayer::new(&mut mixer, &music_box)) {
+                    UpdateState::Normal => {}
+                    UpdateState::Dead => {
+                        level.dead_start();
+                        while level.dead_update() {
+                            vblank.wait_for_VBlank();
+                            music_box.after_blank(&mut mixer);
+                            mixer.vblank();
+                        }
+                        break;
+                    }
+                    UpdateState::Complete => {
+                        current_level += 1;
+                        break;
+                    }
+                }
+                vblank.wait_for_VBlank();
+                music_box.after_blank(&mut mixer);
+                mixer.vblank();
+            }
         }
+
+        splash_screen::show_splash_screen(
+            &mut agb,
+            splash_screen::SplashScreen::End,
+            Some(&mut mixer),
+            Some(&mut music_box),
+        );
     }
 }
