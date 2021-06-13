@@ -1,7 +1,7 @@
 use agb_image_converter::{convert_image, Colour, ImageConverterConfig, TileSize};
 
 const LEVELS: &[&str] = &[
-    "1-1.json", "1-2.json", "1-3.json", "1-4.json", "1-5.json", "1-6.json",
+    "1-1.json", "1-2.json", "1-3.json", "1-4.json", "1-5.json", "1-6.json", "1-7.json",
 ];
 
 fn main() {
