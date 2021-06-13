@@ -51,6 +51,7 @@ mod map_tiles {
         l1_7::get_level(), // these are intentionally this way round
         l1_6::get_level(),
         l1_8::get_level(),
+        l2_3::get_level(), // goes 2-3, 2-1 then 2-2
         l2_1::get_level(),
         l2_2::get_level(),
         l2_4::get_level(),
@@ -84,9 +85,11 @@ mod map_tiles {
     pub mod l1_8 {
         include!(concat!(env!("OUT_DIR"), "/1-8.json.rs"));
     }
-
     pub mod l2_2 {
         include!(concat!(env!("OUT_DIR"), "/2-2.json.rs"));
+    }
+    pub mod l2_3 {
+        include!(concat!(env!("OUT_DIR"), "/2-3.json.rs"));
     }
 
     pub mod l2_4 {
