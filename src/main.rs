@@ -3,6 +3,7 @@
 
 mod enemies;
 mod level_display;
+mod sfx;
 
 pub struct Level {
     background: &'static [u16],
@@ -676,6 +677,7 @@ pub fn main() -> ! {
     let mut agb = agb::Gba::new();
     let mut tiled = agb.display.video.tiled0();
     let mut object = agb.display.object.get();
+    let mut mixer = agb.mixer.mixer();
 
     tiled.set_background_palettes(&map_tiles::tiles::PALETTE_DATA);
     tiled.set_background_tilemap(0, &map_tiles::tiles::TILE_DATA);
@@ -687,6 +689,9 @@ pub fn main() -> ! {
     let mut background = tiled.get_background().unwrap();
     let mut foreground = tiled.get_background().unwrap();
     object.enable();
+
+    mixer.enable();
+    let mut music_box = sfx::MusicBox::new();
 
     let vblank = agb.display.vblank.get();
     let mut current_level = 0;
@@ -711,6 +716,8 @@ pub fn main() -> ! {
 
         for _ in 0..60 {
             vblank.wait_for_VBlank();
+            music_box.after_blank(&mut mixer);
+            mixer.vblank();
         }
         world_display.hide();
 
@@ -721,6 +728,8 @@ pub fn main() -> ! {
                     level.dead_start();
                     while level.dead_update() {
                         vblank.wait_for_VBlank();
+                        music_box.after_blank(&mut mixer);
+                        mixer.vblank();
                     }
                     break;
                 }
@@ -730,6 +739,8 @@ pub fn main() -> ! {
                 }
             }
             vblank.wait_for_VBlank();
+            music_box.after_blank(&mut mixer);
+            mixer.vblank();
         }
     }
 }
