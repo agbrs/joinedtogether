@@ -16,6 +16,20 @@ mod music_data {
     pub const LOOP_MUSIC: i32 = 5141;
 }
 
+mod effects {
+    const WOOSH1: &[u8] = include_bytes!("../sfx/woosh1.raw");
+    const WOOSH2: &[u8] = include_bytes!("../sfx/woosh2.raw");
+    const WOOSH3: &[u8] = include_bytes!("../sfx/woosh3.raw");
+
+    pub const WHOOSHES: &[&[u8]] = &[WOOSH1, WOOSH2, WOOSH3];
+
+    const CATCH1: &[u8] = include_bytes!("../sfx/catch1.raw");
+    const CATCH2: &[u8] = include_bytes!("../sfx/catch2.raw");
+    const CATCH3: &[u8] = include_bytes!("../sfx/catch3.raw");
+
+    pub const CATCHES: &[&[u8]] = &[CATCH1, CATCH2, CATCH3];
+}
+
 pub struct MusicBox {
     frame: i32,
 }
@@ -36,5 +50,19 @@ impl MusicBox {
         }
 
         self.frame += 1;
+    }
+
+    pub fn catch(&self, mixer: &mut Mixer) {
+        self.play_random(mixer, effects::CATCHES);
+    }
+
+    pub fn throw(&self, mixer: &mut Mixer) {
+        self.play_random(mixer, effects::WHOOSHES);
+    }
+
+    fn play_random(&self, mixer: &mut Mixer, effect: &[&'static [u8]]) {
+        mixer.play_sound(SoundChannel::new(
+            effect[(self.frame as usize) % effect.len()],
+        ));
     }
 }
