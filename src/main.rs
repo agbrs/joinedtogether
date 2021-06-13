@@ -101,7 +101,11 @@ impl<'a> Entity<'a> {
         }
     }
 
-    fn collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+    fn something_at_point<T: Fn(i32, i32) -> bool>(
+        &self,
+        position: Vector2D<FixedNumberType>,
+        something_fn: T,
+    ) -> bool {
         let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
         let right = (position.x + self.collision_mask.x as i32 / 2 - 1).floor() / 8;
         let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
@@ -109,7 +113,7 @@ impl<'a> Entity<'a> {
 
         for x in left..=right {
             for y in top..=bottom {
-                if level.collides(x, y) {
+                if something_fn(x, y) {
                     return true;
                 }
             }
@@ -117,20 +121,12 @@ impl<'a> Entity<'a> {
         false
     }
 
-    fn killision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
-        let left = (position.x - self.collision_mask.x as i32 / 2).floor() / 8;
-        let right = (position.x + self.collision_mask.x as i32 / 2 - 1).floor() / 8;
-        let top = (position.y - self.collision_mask.y as i32 / 2).floor() / 8;
-        let bottom = (position.y + self.collision_mask.y as i32 / 2 - 1).floor() / 8;
+    fn collision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+        self.something_at_point(position, |x, y| level.collides(x, y))
+    }
 
-        for x in left..=right {
-            for y in top..=bottom {
-                if level.kills(x, y) {
-                    return true;
-                }
-            }
-        }
-        false
+    fn killision_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+        self.something_at_point(position, |x, y| level.kills(x, y))
     }
 
     fn enemy_collision_at_point(
