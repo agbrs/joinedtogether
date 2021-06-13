@@ -42,11 +42,11 @@ mod map_tiles {
 
     use super::Level;
     pub const LEVELS: &[Level] = &[
-        l1_5::get_level(),
         l1_1::get_level(),
         l1_2::get_level(),
         l1_3::get_level(),
         l1_4::get_level(),
+        l1_5::get_level(),
     ];
 
     pub mod l1_1 {
