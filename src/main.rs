@@ -4,6 +4,7 @@
 mod enemies;
 mod level_display;
 mod sfx;
+mod splash_screen;
 
 pub struct Level {
     background: &'static [u16],
@@ -753,6 +754,9 @@ impl<'a> PlayingLevel<'a> {
 #[no_mangle]
 pub fn main() -> ! {
     let mut agb = agb::Gba::new();
+
+    splash_screen::show_splash_screen(&mut agb);
+
     let mut tiled = agb.display.video.tiled0();
     let mut object = agb.display.object.get();
     let mut mixer = agb.mixer.mixer();
