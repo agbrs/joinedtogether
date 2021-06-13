@@ -366,6 +366,7 @@ impl<'a> Player<'a> {
         timer: i32,
         level: &Level,
         enemies: &[enemies::Enemy],
+        sfx_player: &mut sfx::SfxPlayer,
     ) {
         // throw or recall
         if input.is_just_pressed(Button::A) {
@@ -379,6 +380,8 @@ impl<'a> Player<'a> {
                     }
                     self.hat.velocity = velocity;
                     self.hat_state = HatState::Thrown;
+
+                    sfx_player.throw();
                 }
             } else if self.hat_state == HatState::Thrown {
                 self.num_recalls += 1;
@@ -512,6 +515,7 @@ impl<'a> Player<'a> {
                     self.hat_left_range = true;
                 }
                 if self.hat_left_range && distance < 16.into() {
+                    sfx_player.catch();
                     self.hat_state = HatState::OnHead;
                 }
             }
@@ -536,6 +540,7 @@ impl<'a> Player<'a> {
                 if distance < 16.into() {
                     self.wizard.velocity /= 8;
                     self.hat_state = HatState::OnHead;
+                    sfx_player.catch();
                 }
             }
         }
@@ -621,7 +626,7 @@ impl<'a> PlayingLevel<'a> {
         self.player.wizard.position.y - self.background.position.y < (HEIGHT + 8).into()
     }
 
-    fn update_frame(&mut self) -> UpdateState {
+    fn update_frame(&mut self, sfx_player: &mut sfx::SfxPlayer) -> UpdateState {
         self.timer += 1;
         self.input.update();
 
@@ -632,6 +637,7 @@ impl<'a> PlayingLevel<'a> {
             self.timer,
             &self.background.level,
             &self.enemies,
+            sfx_player,
         );
 
         for enemy in self.enemies.iter_mut() {
@@ -752,7 +758,7 @@ pub fn main() -> ! {
         world_display.hide();
 
         loop {
-            match level.update_frame() {
+            match level.update_frame(&mut sfx::SfxPlayer::new(&mut mixer, &music_box)) {
                 UpdateState::Normal => {}
                 UpdateState::Dead => {
                     level.dead_start();

@@ -51,17 +51,31 @@ impl MusicBox {
 
         self.frame += 1;
     }
+}
 
-    pub fn catch(&self, mixer: &mut Mixer) {
-        self.play_random(mixer, effects::CATCHES);
+pub struct SfxPlayer<'a> {
+    mixer: &'a mut Mixer,
+    frame: i32,
+}
+
+impl<'a> SfxPlayer<'a> {
+    pub fn new(mixer: &'a mut Mixer, music_box: &MusicBox) -> Self {
+        SfxPlayer {
+            mixer,
+            frame: music_box.frame,
+        }
     }
 
-    pub fn throw(&self, mixer: &mut Mixer) {
-        self.play_random(mixer, effects::WHOOSHES);
+    pub fn catch(&mut self) {
+        self.play_random(effects::CATCHES);
     }
 
-    fn play_random(&self, mixer: &mut Mixer, effect: &[&'static [u8]]) {
-        mixer.play_sound(SoundChannel::new(
+    pub fn throw(&mut self) {
+        self.play_random(effects::WHOOSHES);
+    }
+
+    fn play_random(&mut self, effect: &[&'static [u8]]) {
+        self.mixer.play_sound(SoundChannel::new(
             effect[(self.frame as usize) % effect.len()],
         ));
     }
