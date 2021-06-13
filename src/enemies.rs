@@ -379,6 +379,10 @@ impl<'a> Snail<'a> {
                 }
             }
             SnailState::Death(time) => {
+                if timer == time + 1 {
+                    sfx_player.snail_death();
+                }
+
                 let offset = (timer - time) / 4;
                 let tile_id = if offset < 5 {
                     object_tiles::SNAIL_EMERGE_START + ((5 - offset) * 4) as u16

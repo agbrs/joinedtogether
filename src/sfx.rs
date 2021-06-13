@@ -34,6 +34,7 @@ mod effects {
     pub const SNAIL_EMERGE: &[u8] = include_bytes!("../sfx/snail-emerge.raw");
     pub const SNAIL_RETREAT: &[u8] = include_bytes!("../sfx/snail-retreat.raw");
     pub const SNAIL_HAT_BOUNCE: &[u8] = include_bytes!("../sfx/snail-hat-bounce.raw");
+    pub const SNAIL_DEATH: &[u8] = include_bytes!("../sfx/snail-death.raw");
 }
 
 pub struct MusicBox {
@@ -106,6 +107,11 @@ impl<'a> SfxPlayer<'a> {
     pub fn snail_hat_bounce(&mut self) {
         self.mixer
             .play_sound(SoundChannel::new(effects::SNAIL_HAT_BOUNCE));
+    }
+
+    pub fn snail_death(&mut self) {
+        self.mixer
+            .play_sound(SoundChannel::new(effects::SNAIL_DEATH));
     }
 
     pub fn land(&mut self) {
