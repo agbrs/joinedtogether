@@ -23,11 +23,13 @@ mod effects {
 
     pub const WHOOSHES: &[&[u8]] = &[WOOSH1, WOOSH2, WOOSH3];
 
-    const CATCH1: &[u8] = include_bytes!("../sfx/catch1.raw");
-    const CATCH2: &[u8] = include_bytes!("../sfx/catch2.raw");
-    const CATCH3: &[u8] = include_bytes!("../sfx/catch3.raw");
+    const RECALL1: &[u8] = include_bytes!("../sfx/recall1.raw");
+    const RECALL2: &[u8] = include_bytes!("../sfx/recall2.raw");
+    const RECALL3: &[u8] = include_bytes!("../sfx/recall3.raw");
 
-    pub const CATCHES: &[&[u8]] = &[CATCH1, CATCH2, CATCH3];
+    pub const RECALLS: &[&[u8]] = &[RECALL1, RECALL2, RECALL3];
+
+    pub const CATCH: &[u8] = include_bytes!("../sfx/catch.raw");
 }
 
 pub struct MusicBox {
@@ -66,8 +68,12 @@ impl<'a> SfxPlayer<'a> {
         }
     }
 
+    pub fn recall(&mut self) {
+        self.play_random(effects::RECALLS);
+    }
+
     pub fn catch(&mut self) {
-        self.play_random(effects::CATCHES);
+        self.mixer.play_sound(SoundChannel::new(effects::CATCH));
     }
 
     pub fn throw(&mut self) {
