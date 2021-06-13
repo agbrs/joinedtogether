@@ -318,6 +318,7 @@ struct Player<'a> {
     hat_slow_counter: i32,
     wizard_frame: u8,
     num_recalls: i8,
+    is_on_ground: bool,
     facing: input::Tri,
 }
 
@@ -356,6 +357,7 @@ impl<'a> Player<'a> {
             hat_left_range: false,
             wizard_frame: 0,
             num_recalls: 0,
+            is_on_ground: true,
             facing: input::Tri::Zero,
         }
     }
@@ -396,9 +398,15 @@ impl<'a> Player<'a> {
             }
         }
 
+        let was_on_ground = self.is_on_ground;
         let is_on_ground = self
             .wizard
             .collision_at_point(level, self.wizard.position + (0, 1).into());
+
+        if is_on_ground && !was_on_ground && self.wizard.velocity.y > 1.into() {
+            sfx_player.land();
+        }
+        self.is_on_ground = is_on_ground;
 
         if self.hat_state != HatState::WizardTowards {
             if is_on_ground {
@@ -410,6 +418,7 @@ impl<'a> Player<'a> {
                 self.wizard.velocity = self.wizard.velocity * 54 / 64;
                 if input.is_just_pressed(Button::B) {
                     self.wizard.velocity.y = -FixedNumberType::new(3) / 2;
+                    sfx_player.jump();
                 }
             } else {
                 self.wizard.velocity.x += FixedNumberType::new(input.x_tri() as i32) / 64;

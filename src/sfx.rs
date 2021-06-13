@@ -24,6 +24,9 @@ mod effects {
     pub const WHOOSHES: &[&[u8]] = &[WOOSH1, WOOSH2, WOOSH3];
 
     pub const CATCH: &[u8] = include_bytes!("../sfx/catch.raw");
+
+    pub const JUMP: &[u8] = include_bytes!("../sfx/jump.raw");
+    pub const LAND: &[u8] = include_bytes!("../sfx/land.raw");
 }
 
 pub struct MusicBox {
@@ -68,6 +71,14 @@ impl<'a> SfxPlayer<'a> {
 
     pub fn throw(&mut self) {
         self.play_random(effects::WHOOSHES);
+    }
+
+    pub fn jump(&mut self) {
+        self.mixer.play_sound(SoundChannel::new(effects::JUMP));
+    }
+
+    pub fn land(&mut self) {
+        self.mixer.play_sound(SoundChannel::new(effects::LAND));
     }
 
     fn play_random(&mut self, effect: &[&'static [u8]]) {
