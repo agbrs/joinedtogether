@@ -56,8 +56,5 @@
   <object id="1" type="Player Start" x="16" y="112">
    <point/>
   </object>
-  <object id="2" type="Slime Spawn" x="232" y="120">
-   <point/>
-  </object>
  </objectgroup>
 </map>

@@ -50,18 +50,6 @@
                  "width":0,
                  "x":16,
                  "y":88
-                }, 
-                {
-                 "height":0,
-                 "id":2,
-                 "name":"",
-                 "point":true,
-                 "rotation":0,
-                 "type":"Slime Spawn",
-                 "visible":true,
-                 "width":0,
-                 "x":232,
-                 "y":88
                 }],
          "opacity":1,
          "type":"objectgroup",
