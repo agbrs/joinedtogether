@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objecttypes>
+ <objecttype name="Win" color="#a0a0a4"/>
  <objecttype name="Collision" color="#a0a0a4"/>
  <objecttype name="Enemy Stop" color="#ffff00"/>
  <objecttype name="Kill" color="#a0a0a4"/>

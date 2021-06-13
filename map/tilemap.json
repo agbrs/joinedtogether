@@ -1,5 +1,13 @@
 { "columns":28,
- "image":"..\/joined_together_in_a_tilemap-Sheet.png",
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"tilemap.json"
+        }
+    },
+ "image":"..\/gfx\/tile_sheet.png",
  "imageheight":104,
  "imagewidth":224,
  "margin":0,
@@ -194,6 +202,10 @@
          "type":"Collision"
         }, 
         {
+         "id":223,
+         "type":"Win"
+        }, 
+        {
          "id":224,
          "type":"Collision"
         }, 
@@ -242,6 +254,10 @@
          "type":"Collision"
         }, 
         {
+         "id":251,
+         "type":"Win"
+        }, 
+        {
          "id":252,
          "type":"Collision"
         }, 
@@ -276,6 +292,10 @@
         {
          "id":278,
          "type":"Collision"
+        }, 
+        {
+         "id":279,
+         "type":"Win"
         }, 
         {
          "id":280,
@@ -378,7 +398,7 @@
          "type":"Collision"
         }],
  "tilewidth":8,
- "transparentcolor":"#36caff",
+ "transparentcolor":"#2ce8f4",
  "type":"tileset",
  "version":"1.6"
 }

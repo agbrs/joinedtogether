@@ -38,6 +38,7 @@ mod tiled_export {
 
     const COLLISION_TILE: i32 = 1;
     const KILL_TILE: i32 = 2;
+    const WIN_TILE: i32 = 4;
 
     pub fn export_tilemap(out_dir: &str) -> std::io::Result<()> {
         let filename = "map/tilemap.json";
@@ -59,6 +60,7 @@ mod tiled_export {
                     match tile.tile_type.as_str() {
                         "Collision" => COLLISION_TILE,
                         "Kill" => KILL_TILE,
+                        "Win" => WIN_TILE,
                         _ => 0,
                     },
                 )
@@ -78,6 +80,7 @@ mod tiled_export {
         )?;
 
         writeln!(&mut writer, "pub const KILL_TILE: i32 = {};", KILL_TILE)?;
+        writeln!(&mut writer, "pub const WIN_TILE: i32 = {};", WIN_TILE)?;
 
         writeln!(
             &mut writer,

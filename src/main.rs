@@ -129,6 +129,10 @@ impl<'a> Entity<'a> {
         self.something_at_point(position, |x, y| level.kills(x, y))
     }
 
+    fn completion_at_point(&self, level: &Level, position: Vector2D<FixedNumberType>) -> bool {
+        self.something_at_point(position, |x, y| level.wins(x, y))
+    }
+
     fn enemy_collision_at_point(
         &self,
         enemies: &[enemies::Enemy],
@@ -277,17 +281,14 @@ impl<'a> Map<'a> {
 
 impl Level {
     fn collides(&self, x: i32, y: i32) -> bool {
-        if (x < 0 || x >= self.dimensions.x as i32) || (y < 0 || y >= self.dimensions.y as i32) {
-            return true;
-        }
-        let pos = (self.dimensions.x as i32 * y + x) as usize;
-        let tile_foreground = self.foreground[pos];
-        let tile_background = self.background[pos];
-        let foreground_tile_property = self.collision[tile_foreground as usize];
-        foreground_tile_property == map_tiles::tilemap::COLLISION_TILE as u32
+        self.at_point(x, y, map_tiles::tilemap::COLLISION_TILE as u32)
     }
 
     fn kills(&self, x: i32, y: i32) -> bool {
+        self.at_point(x, y, map_tiles::tilemap::KILL_TILE as u32)
+    }
+
+    fn at_point(&self, x: i32, y: i32, tile: u32) -> bool {
         if (x < 0 || x >= self.dimensions.x as i32) || (y < 0 || y >= self.dimensions.y as i32) {
             return true;
         }
@@ -295,7 +296,12 @@ impl Level {
         let tile_foreground = self.foreground[pos];
         let tile_background = self.background[pos];
         let foreground_tile_property = self.collision[tile_foreground as usize];
-        foreground_tile_property == map_tiles::tilemap::KILL_TILE as u32
+        let background_tile_property = self.collision[tile_background as usize];
+        foreground_tile_property == tile || background_tile_property == tile
+    }
+
+    fn wins(&self, x: i32, y: i32) -> bool {
+        self.at_point(x, y, map_tiles::tilemap::WIN_TILE as u32)
     }
 }
 
@@ -674,7 +680,11 @@ impl<'a> PlayingLevel<'a> {
             .killision_at_point(&self.background.level, self.player.wizard.position);
         if player_dead {
             UpdateState::Dead
-        } else if self.enemies.iter().fold(true, |f, n| f & n.is_empty()) {
+        } else if self
+            .player
+            .wizard
+            .completion_at_point(self.background.level, self.player.wizard.position)
+        {
             UpdateState::Complete
         } else {
             UpdateState::Normal
