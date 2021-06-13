@@ -50,6 +50,7 @@ mod map_tiles {
         l1_5::get_level(),
         l1_7::get_level(),
         l1_6::get_level(),
+        l1_8::get_level(),
     ];
 
     pub mod l1_1 {
@@ -72,6 +73,10 @@ mod map_tiles {
     }
     pub mod l1_7 {
         include!(concat!(env!("OUT_DIR"), "/1-7.json.rs"));
+    }
+
+    pub mod l1_8 {
+        include!(concat!(env!("OUT_DIR"), "/1-8.json.rs"));
     }
 
     pub mod tilemap {
