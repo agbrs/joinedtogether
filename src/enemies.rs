@@ -60,7 +60,7 @@ impl<'a> Enemy<'a> {
     ) -> EnemyUpdateState {
         let update_state = match self {
             Enemy::Slime(slime) => slime.update(level, player_pos, hat_state, timer, sfx_player),
-            Enemy::Snail(snail) => snail.update(level, player_pos, hat_state, timer),
+            Enemy::Snail(snail) => snail.update(level, player_pos, hat_state, timer, sfx_player),
             Enemy::Empty => UpdateState::Nothing,
         };
 
@@ -275,6 +275,7 @@ impl<'a> Snail<'a> {
         player_pos: Vector2D<FixedNumberType>,
         hat_state: HatState,
         timer: i32,
+        sfx_player: &mut SfxPlayer,
     ) -> UpdateState {
         let player_has_collided =
             (self.enemy_info.entity.position - player_pos).magnitude_squared() < (10 * 10).into();
@@ -290,6 +291,7 @@ impl<'a> Snail<'a> {
                     {
                         // player is close
                         self.state = SnailState::Emerging(timer);
+                        sfx_player.snail_emerge();
                     }
                 }
 
@@ -326,6 +328,7 @@ impl<'a> Snail<'a> {
                 if timer - time > 240 {
                     // only move for 4 seconds
                     self.state = SnailState::Retreating(timer);
+                    sfx_player.snail_retreat();
                 }
 
                 let offset = (timer - time) / 8 % 2;

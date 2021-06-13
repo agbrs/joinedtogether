@@ -174,7 +174,8 @@ impl<'a> Entity<'a> {
         &mut self,
         level: &Level,
         enemies: &[enemies::Enemy],
-    ) -> Vector2D<FixedNumberType> {
+    ) -> (Vector2D<FixedNumberType>, bool) {
+        let mut was_enemy_collision = false;
         let old_position = self.position;
         let x_velocity = (self.velocity.x, 0.into()).into();
 
@@ -184,6 +185,7 @@ impl<'a> Entity<'a> {
             self.position += x_velocity;
         } else if self.enemy_collision_at_point(enemies, self.position + x_velocity) {
             self.position -= x_velocity;
+            was_enemy_collision = true;
         }
 
         let y_velocity = (0.into(), self.velocity.y).into();
@@ -193,9 +195,10 @@ impl<'a> Entity<'a> {
             self.position += y_velocity;
         } else if self.enemy_collision_at_point(enemies, self.position + y_velocity) {
             self.position -= y_velocity;
+            was_enemy_collision = true;
         }
 
-        self.position - old_position
+        (self.position - old_position, was_enemy_collision)
     }
 
     fn binary_search_collision(
@@ -525,7 +528,14 @@ impl<'a> Player<'a> {
                 } else {
                     self.hat.velocity += direction / 4;
                 }
-                self.hat.velocity = self.hat.update_position_with_enemy(level, enemies);
+                let (new_velocity, enemy_collision) =
+                    self.hat.update_position_with_enemy(level, enemies);
+                self.hat.velocity = new_velocity;
+
+                if enemy_collision {
+                    sfx_player.snail_hat_bounce();
+                }
+
                 if distance > 16.into() {
                     self.hat_left_range = true;
                 }
