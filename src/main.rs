@@ -389,8 +389,6 @@ impl<'a> Player<'a> {
                     self.hat.velocity = (0, 0).into();
                     self.wizard.velocity = (0, 0).into();
                     self.hat_state = HatState::WizardTowards;
-
-                    sfx_player.recall();
                 }
             } else if self.hat_state == HatState::WizardTowards {
                 self.hat_state = HatState::Thrown;
