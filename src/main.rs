@@ -43,7 +43,6 @@ mod map_tiles {
 
     use super::Level;
     pub const LEVELS: &[Level] = &[
-        l2_3::get_level(),
         l1_1::get_level(),
         l1_2::get_level(),
         l1_3::get_level(),
@@ -52,6 +51,7 @@ mod map_tiles {
         l1_7::get_level(), // these are intentionally this way round
         l1_6::get_level(),
         l1_8::get_level(),
+        l2_3::get_level(), // goes 2-3, 2-1 then 2-2
         l2_1::get_level(),
         l2_2::get_level(),
     ];
