@@ -299,8 +299,12 @@ impl<'a> Snail<'a> {
                     .entity
                     .sprite
                     .set_tile_id(object_tiles::SNAIL_IDLE_START);
-                if player_has_collided && hat_state != HatState::WizardTowards {
-                    return UpdateState::KillPlayer;
+                if player_has_collided {
+                    if hat_state != HatState::WizardTowards {
+                        return UpdateState::KillPlayer;
+                    } else {
+                        self.state = SnailState::Death(timer);
+                    }
                 }
             }
             SnailState::Emerging(time) => {
@@ -319,7 +323,7 @@ impl<'a> Snail<'a> {
                 if player_has_collided {
                     if hat_state != HatState::WizardTowards {
                         return UpdateState::KillPlayer;
-                    } else if hat_state == HatState::WizardTowards && offset > 1 {
+                    } else if hat_state == HatState::WizardTowards {
                         self.state = SnailState::Death(timer);
                     }
                 }
@@ -373,7 +377,7 @@ impl<'a> Snail<'a> {
                 if player_has_collided {
                     if hat_state != HatState::WizardTowards {
                         return UpdateState::KillPlayer;
-                    } else if hat_state == HatState::WizardTowards && offset > 1 {
+                    } else if hat_state == HatState::WizardTowards {
                         self.state = SnailState::Death(timer);
                     }
                 }
