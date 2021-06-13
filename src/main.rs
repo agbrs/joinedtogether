@@ -43,6 +43,7 @@ mod map_tiles {
 
     use super::Level;
     pub const LEVELS: &[Level] = &[
+        l2_3::get_level(),
         l1_1::get_level(),
         l1_2::get_level(),
         l1_3::get_level(),
@@ -83,9 +84,11 @@ mod map_tiles {
     pub mod l1_8 {
         include!(concat!(env!("OUT_DIR"), "/1-8.json.rs"));
     }
-
     pub mod l2_2 {
         include!(concat!(env!("OUT_DIR"), "/2-2.json.rs"));
+    }
+    pub mod l2_3 {
+        include!(concat!(env!("OUT_DIR"), "/2-3.json.rs"));
     }
 
     pub mod tilemap {
