@@ -48,8 +48,8 @@ mod map_tiles {
         l1_3::get_level(),
         l1_4::get_level(),
         l1_5::get_level(),
-        l1_6::get_level(),
         l1_7::get_level(),
+        l1_6::get_level(),
     ];
 
     pub mod l1_1 {
