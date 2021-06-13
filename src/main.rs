@@ -264,7 +264,7 @@ impl<'a> Map<'a> {
         self.background.set_position(
             self.level.foreground,
             self.level.dimensions,
-            (0, 0).into(),
+            self.position.floor(),
             0,
         );
         self.background
@@ -276,7 +276,7 @@ impl<'a> Map<'a> {
         self.foreground.set_position(
             self.level.background,
             self.level.dimensions,
-            (0, 0).into(),
+            self.position.floor(),
             0,
         );
         self.foreground
@@ -607,7 +607,17 @@ impl<'a> PlayingLevel<'a> {
             enemy_count += 1;
         }
 
-        let start_pos = level.start_pos.into();
+        let start_pos: Vector2D<FixedNumberType> = level.start_pos.into();
+
+        let background_position = (
+            start_pos
+                .x
+                .clamp(0.into(), ((level.dimensions.x * 8) as i32 - WIDTH).into()),
+            start_pos
+                .y
+                .clamp(0.into(), ((level.dimensions.y * 8) as i32 - HEIGHT).into()),
+        )
+            .into();
 
         PlayingLevel {
             timer: 0,
@@ -615,7 +625,7 @@ impl<'a> PlayingLevel<'a> {
                 background,
                 foreground,
                 level,
-                position: (0, 0).into(),
+                position: background_position,
             },
             player: Player::new(object_control, start_pos),
             input,
