@@ -252,6 +252,31 @@ impl<'a> Map<'a> {
             0,
         );
     }
+
+    fn load_foreground(&mut self) {
+        self.background.set_position(
+            self.level.foreground,
+            self.level.dimensions,
+            (0, 0).into(),
+            0,
+        );
+        self.background
+            .draw_full_map(self.level.foreground, self.level.dimensions, 0);
+        self.background.show();
+    }
+
+    fn load_background(&mut self) {
+        self.foreground.set_position(
+            self.level.background,
+            self.level.dimensions,
+            (0, 0).into(),
+            0,
+        );
+        self.foreground
+            .draw_full_map(self.level.background, self.level.dimensions, 0);
+        self.foreground.set_priority(Priority::P2);
+        self.foreground.show();
+    }
 }
 
 impl Level {
@@ -540,15 +565,6 @@ impl<'a> PlayingLevel<'a> {
         foreground: &'a mut Background,
         input: ButtonController,
     ) -> Self {
-        background.set_position(level.foreground, level.dimensions, (0, 0).into(), 0);
-        background.draw_full_map(level.foreground, level.dimensions, 0);
-        background.show();
-
-        foreground.set_position(level.background, level.dimensions, (0, 0).into(), 0);
-        foreground.draw_full_map(level.background, level.dimensions, 0);
-        foreground.set_priority(Priority::P2);
-        foreground.show();
-
         let mut e: [enemies::Enemy<'a>; 16] = Default::default();
         let mut enemy_count = 0;
         for &slime in level.slimes {
@@ -575,6 +591,14 @@ impl<'a> PlayingLevel<'a> {
             input,
             enemies: e,
         }
+    }
+
+    fn load_1(&mut self) {
+        self.background.load_background();
+    }
+
+    fn load_2(&mut self) {
+        self.background.load_foreground();
     }
 
     fn dead_start(&mut self) {
@@ -714,7 +738,13 @@ pub fn main() -> ! {
             agb::input::ButtonController::new(),
         );
 
-        for _ in 0..60 {
+        for i in 0..60 {
+            match i {
+                1 => level.load_1(),
+                2 => level.load_2(),
+                _ => {}
+            };
+
             vblank.wait_for_VBlank();
             music_box.after_blank(&mut mixer);
             mixer.vblank();
