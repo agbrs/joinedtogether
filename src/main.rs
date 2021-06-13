@@ -708,14 +708,14 @@ impl<'a> PlayingLevel<'a> {
     fn get_next_map_position(&self) -> Vector2D<FixedNumberType> {
         // want to ensure the player and the hat are visible if possible, so try to position the map
         // so the centre is at the average position. But give the player some extra priority
-        let hat_pos = self.player.hat.position;
-        let player_pos = self.player.wizard.position;
+        let hat_pos = self.player.hat.position.floor();
+        let player_pos = self.player.wizard.position.floor();
 
         let new_target_position = (hat_pos + player_pos * 3) / 4;
 
-        let screen: Vector2D<FixedNumberType> = (WIDTH, HEIGHT).into();
+        let screen: Vector2D<i32> = (WIDTH, HEIGHT).into();
         let half_screen = screen / 2;
-        let current_centre = self.background.position + half_screen;
+        let current_centre = self.background.position.floor() + half_screen;
 
         let mut target_position = ((current_centre * 3 + new_target_position) / 4) - half_screen;
 
@@ -728,7 +728,7 @@ impl<'a> PlayingLevel<'a> {
             ((self.background.level.dimensions.y * 8 - (HEIGHT as u32)) as i32).into(),
         );
 
-        target_position
+        target_position.into()
     }
 }
 
