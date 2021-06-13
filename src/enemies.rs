@@ -1,4 +1,4 @@
-use super::{object_tiles, Entity, FixedNumberType, HatState, Level};
+use super::{object_tiles, sfx::SfxPlayer, Entity, FixedNumberType, HatState, Level};
 use agb::{
     display::object::{ObjectControl, Size},
     number::Vector2D,
@@ -56,9 +56,10 @@ impl<'a> Enemy<'a> {
         player_pos: Vector2D<FixedNumberType>,
         hat_state: HatState,
         timer: i32,
+        sfx_player: &mut SfxPlayer,
     ) -> EnemyUpdateState {
         let update_state = match self {
-            Enemy::Slime(slime) => slime.update(level, player_pos, hat_state, timer),
+            Enemy::Slime(slime) => slime.update(level, player_pos, hat_state, timer, sfx_player),
             Enemy::Snail(snail) => snail.update(level, player_pos, hat_state, timer),
             Enemy::Empty => UpdateState::Nothing,
         };
@@ -146,6 +147,7 @@ impl<'a> Slime<'a> {
         player_pos: Vector2D<FixedNumberType>,
         hat_state: HatState,
         timer: i32,
+        sfx_player: &mut SfxPlayer,
     ) -> UpdateState {
         let player_has_collided =
             (self.enemy_info.entity.position - player_pos).magnitude_squared() < (10 * 10).into();
@@ -184,6 +186,10 @@ impl<'a> Slime<'a> {
             }
             SlimeState::Jumping(jumping_start_frame) => {
                 let offset = (timer - jumping_start_frame) / 4;
+
+                if offset == 0 {
+                    sfx_player.slime_jump();
+                }
 
                 if offset >= 7 {
                     self.enemy_info.entity.velocity = (0, 0).into();

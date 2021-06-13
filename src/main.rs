@@ -655,6 +655,7 @@ impl<'a> PlayingLevel<'a> {
                 self.player.wizard.position,
                 self.player.hat_state,
                 self.timer,
+                sfx_player,
             ) {
                 enemies::EnemyUpdateState::KillPlayer => player_dead = true,
                 enemies::EnemyUpdateState::None => {}
