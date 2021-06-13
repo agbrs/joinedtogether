@@ -1,6 +1,6 @@
 use agb_image_converter::{convert_image, Colour, ImageConverterConfig, TileSize};
 
-const LEVELS: &[&str] = &["1-4.json"];
+const LEVELS: &[&str] = &["1-1.json", "1-2.json", "1-3.json", "1-4.json"];
 
 fn main() {
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR environment variable must be specified");

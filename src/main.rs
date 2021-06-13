@@ -40,8 +40,22 @@ mod object_tiles {
 mod map_tiles {
 
     use super::Level;
-    pub const LEVELS: &[Level] = &[l1_4::get_level()];
+    pub const LEVELS: &[Level] = &[
+        l1_1::get_level(),
+        l1_2::get_level(),
+        l1_3::get_level(),
+        l1_4::get_level(),
+    ];
 
+    pub mod l1_1 {
+        include!(concat!(env!("OUT_DIR"), "/1-1.json.rs"));
+    }
+    pub mod l1_2 {
+        include!(concat!(env!("OUT_DIR"), "/1-2.json.rs"));
+    }
+    pub mod l1_3 {
+        include!(concat!(env!("OUT_DIR"), "/1-3.json.rs"));
+    }
     pub mod l1_4 {
         include!(concat!(env!("OUT_DIR"), "/1-4.json.rs"));
     }
