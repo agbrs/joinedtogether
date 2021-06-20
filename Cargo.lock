@@ -16,9 +16,9 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 
 [[package]]
 name = "agb"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "174ca79a3d630ac13dcecd48c118db46b4dad6b21b9bdf01f142460445c4aee0"
+checksum = "59ddeb2413f74a65a71366f58dae60414935d4d9de87b6b2ad9ee5e9e95f0559"
 dependencies = [
  "agb_image_converter",
  "bitflags",
