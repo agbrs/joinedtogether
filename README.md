@@ -14,7 +14,5 @@ If mgba-qt is installed, then a `cargo run` will build and run the game.
 
 ## Changes
 
-The code in this repository I will not change apart from changes required to get the code to compile.
-Due to being a gamejam game, this comes with all bugs.
-We do know of some, and I imagine there are more to be discovered.
-
+This code may have changed since the gamejam submission, the tag `gmtk-submission` contains *exactly* the code at the point of submission.
+This may be difficult to compile due to requiring some special directory setup, so the tag `gmtk-submission-agb-versioned` contains a single change that means it is easier to compile.
