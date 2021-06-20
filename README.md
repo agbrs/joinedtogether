@@ -1,5 +1,7 @@
 # The Hat Chooses The Wizard
 
+[![the hat chooses the wizard screenshot](screenshot.png)](https://lostimmortal.itch.io/the-hat-chooses-the-wizard)
+
 A Game Boy Advance game made for the [GMTK Game jam 2021](https://itch.io/jam/gmtk-2021) written in Rust using the [agb library](https://github.com/corwinkuiper/agb).
 Play it at [lostimmortal.itch.io/the-hat-chooses-the-wizard](https://lostimmortal.itch.io/the-hat-chooses-the-wizard).
 
