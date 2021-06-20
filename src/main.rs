@@ -561,7 +561,7 @@ impl<'a> Player<'a> {
                     .sprite
                     .set_tile_id(hat_base_tile + (hat_sprite_offset * 4) as u16);
 
-                if self.hat_slow_counter < 10 && self.hat.velocity.magnitude() < 2.into() {
+                if self.hat_slow_counter < 30 && self.hat.velocity.magnitude() < 2.into() {
                     self.hat.velocity = (0, 0).into();
                     self.hat_slow_counter += 1;
                 } else {
