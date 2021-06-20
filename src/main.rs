@@ -388,6 +388,7 @@ impl<'a> Player<'a> {
         hat.sprite.commit();
 
         wizard.position = start_position;
+        hat.position = start_position - (0, 10).into();
 
         Player {
             wizard,
