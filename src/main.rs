@@ -413,8 +413,16 @@ impl<'a> Player<'a> {
         // throw or recall
         if input.is_just_pressed(Button::A) {
             if self.hat_state == HatState::OnHead {
-                let direction: Vector2D<FixedNumberType> =
-                    (input.x_tri() as i32, input.y_tri() as i32).into();
+                let direction: Vector2D<FixedNumberType> = {
+                    let up_down = input.y_tri() as i32;
+                    let left_right = if up_down == 0 {
+                        self.facing as i32
+                    } else {
+                        input.x_tri() as i32
+                    };
+                    (left_right, up_down).into()
+                };
+
                 if direction != (0, 0).into() {
                     let mut velocity = direction.normalise() * 5;
                     if velocity.y > 0.into() {
