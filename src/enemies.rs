@@ -342,16 +342,19 @@ impl<'a> Snail<'a> {
                     .sprite
                     .set_tile_id(object_tiles::SNAIL_MOVE + (offset * 4) as u16);
 
-                let x_vel: FixedNumberType = if self.enemy_info.entity.position.x < player_pos.x {
-                    self.enemy_info.entity.sprite.set_hflip(false);
-                    1
-                } else {
-                    self.enemy_info.entity.sprite.set_hflip(true);
-                    -1
-                }
-                .into();
+                if timer % 32 == 0 {
+                    let x_vel: FixedNumberType =
+                        if self.enemy_info.entity.position.x < player_pos.x {
+                            self.enemy_info.entity.sprite.set_hflip(false);
+                            1
+                        } else {
+                            self.enemy_info.entity.sprite.set_hflip(true);
+                            -1
+                        }
+                        .into();
 
-                self.enemy_info.entity.velocity = (x_vel / 8, 0.into()).into();
+                    self.enemy_info.entity.velocity = (x_vel / 8, 0.into()).into();
+                }
 
                 if player_has_collided {
                     if hat_state != HatState::WizardTowards {
