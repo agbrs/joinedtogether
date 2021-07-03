@@ -49,11 +49,11 @@ impl MusicBox {
     pub fn after_blank(&mut self, mixer: &mut Mixer) {
         if self.frame == 0 {
             // play the introduction
-            mixer.play_sound(SoundChannel::new(music_data::INTRO_MUSIC));
+            mixer.play_sound(SoundChannel::new_high_priority(music_data::INTRO_MUSIC));
         } else if self.frame == music_data::TRIGGER_MUSIC_POINT
             || (self.frame - music_data::TRIGGER_MUSIC_POINT) % music_data::LOOP_MUSIC == 0
         {
-            mixer.play_sound(SoundChannel::new(music_data::LOOP));
+            mixer.play_sound(SoundChannel::new_high_priority(music_data::LOOP));
         }
 
         self.frame += 1;
