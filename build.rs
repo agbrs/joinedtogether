@@ -1,5 +1,3 @@
-use agb_image_converter::{convert_image, Colour, ImageConverterConfig, TileSize};
-
 const LEVELS: &[&str] = &[
     "1-1.json", "1-2.json", "1-3.json", "1-4.json", "1-5.json", "1-6.json", "1-7.json", "1-8.json",
     "2-4.json", "2-2.json", "2-1.json", "2-3.json",
@@ -7,45 +5,6 @@ const LEVELS: &[&str] = &[
 
 fn main() {
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR environment variable must be specified");
-    convert_image(
-        ImageConverterConfig::builder()
-            .tile_size(TileSize::Tile8)
-            .transparent_colour(Colour::from_rgb(44, 232, 244))
-            .input_image("gfx/object_sheet.png".into())
-            .output_file(format!("{}/object_sheet.rs", out_dir).into())
-            .build(),
-    );
-    println!("cargo:rerun-if-changed=gfx/object_sheet.png");
-
-    convert_image(
-        ImageConverterConfig::builder()
-            .tile_size(TileSize::Tile8)
-            .transparent_colour(Colour::from_rgb(44, 232, 244))
-            .input_image("gfx/tile_sheet.png".into())
-            .output_file(format!("{}/tile_sheet.rs", out_dir).into())
-            .build(),
-    );
-    println!("cargo:rerun-if-changed=gfx/tile_sheet.png");
-
-    convert_image(
-        ImageConverterConfig::builder()
-            .tile_size(TileSize::Tile8)
-            .transparent_colour(Colour::from_rgb(44, 232, 244))
-            .input_image("gfx/splash.png".into())
-            .output_file(format!("{}/splash.rs", out_dir).into())
-            .build(),
-    );
-    println!("cargo:rerun-if-changed=gfx/splash.png");
-
-    convert_image(
-        ImageConverterConfig::builder()
-            .tile_size(TileSize::Tile8)
-            .transparent_colour(Colour::from_rgb(44, 232, 244))
-            .input_image("gfx/thanks_for_playing.png".into())
-            .output_file(format!("{}/thanks_for_playing.rs", out_dir).into())
-            .build(),
-    );
-    println!("cargo:rerun-if-changed=gfx/thanks_for_playing.png");
 
     tiled_export::export_tilemap(&out_dir).expect("Failed to export tilemap");
     for &level in LEVELS {

@@ -11,8 +11,6 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 [[package]]
 name = "agb"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db0817a32edde7cfd52606045fdda35c444db40d7f5baf1c7a6ea946a73e2ff3"
 dependencies = [
  "agb_image_converter",
  "bitflags",
@@ -21,11 +19,11 @@ dependencies = [
 [[package]]
 name = "agb_image_converter"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63c48ea2b7f5bb3c4605234f6355218401a840055ce703602b8266076a1e6f30"
 dependencies = [
  "image",
- "typed-builder",
+ "litrs",
+ "serde",
+ "toml",
 ]
 
 [[package]]
@@ -112,6 +110,15 @@ dependencies = [
  "agb_image_converter",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "litrs"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9275e0933cf8bb20f008924c0cb07a0692fe54d8064996520bf998de9eb79aa"
+dependencies = [
+ "proc-macro2",
 ]
 
 [[package]]
@@ -243,14 +250,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "typed-builder"
-version = "0.9.0"
+name = "toml"
+version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "345426c7406aa355b60c5007c79a2d1f5b605540072795222f17f6443e6a9c6f"
+checksum = "a31142970826733df8241ef35dc040ef98c679ab14d7c3e54d827099b3acecaa"
 dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "serde",
 ]
 
 [[package]]

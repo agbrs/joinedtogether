@@ -1,13 +1,7 @@
 use super::sfx::MusicBox;
 use agb::sound::mixer::Mixer;
 
-mod splash {
-    include!(concat!(env!("OUT_DIR"), "/splash.rs"));
-}
-
-mod thanks_for_playing {
-    include!(concat!(env!("OUT_DIR"), "/thanks_for_playing.rs"));
-}
+agb_image_converter::include_gfx!("gfx/splash_screens.toml");
 
 pub enum SplashScreen {
     Start,
@@ -24,12 +18,12 @@ pub fn show_splash_screen(
 
     match which {
         SplashScreen::Start => {
-            tiled.set_background_tilemap(0, &splash::TILE_DATA);
-            tiled.set_background_palettes(&splash::PALETTE_DATA);
+            tiled.set_background_tilemap(0, &splash_screens::splash.tiles);
+            tiled.set_background_palettes(&splash_screens::splash.palettes);
         }
         SplashScreen::End => {
-            tiled.set_background_tilemap(0, &thanks_for_playing::TILE_DATA);
-            tiled.set_background_palettes(&thanks_for_playing::PALETTE_DATA);
+            tiled.set_background_tilemap(0, &splash_screens::thanks_for_playing.tiles);
+            tiled.set_background_palettes(&splash_screens::thanks_for_playing.palettes);
         }
     }
     let vblank = agb.display.vblank.get();

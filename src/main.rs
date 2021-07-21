@@ -35,9 +35,9 @@ mod object_tiles {
     pub const SNAIL_EMERGE_START: u16 = 49 * 4;
     pub const SNAIL_MOVE: u16 = 54 * 4;
     pub const SNAIL_DEATH_START: u16 = 56 * 4;
-
-    include!(concat!(env!("OUT_DIR"), "/object_sheet.rs"));
 }
+
+agb_image_converter::include_gfx!("gfx/object_sheet.toml");
 
 mod map_tiles {
 
@@ -99,11 +99,9 @@ mod map_tiles {
     pub mod tilemap {
         include!(concat!(env!("OUT_DIR"), "/tilemap.rs"));
     }
-
-    pub mod tiles {
-        include!(concat!(env!("OUT_DIR"), "/tile_sheet.rs"));
-    }
 }
+
+agb_image_converter::include_gfx!("gfx/tile_sheet.toml");
 
 use agb::{
     display::{
@@ -791,10 +789,10 @@ pub fn main() -> ! {
         let mut object = agb.display.object.get();
         let mut mixer = agb.mixer.mixer();
 
-        tiled.set_background_palettes(&map_tiles::tiles::PALETTE_DATA);
-        tiled.set_background_tilemap(0, &map_tiles::tiles::TILE_DATA);
-        tiled.set_sprite_palettes(object_tiles::PALETTE_DATA);
-        tiled.set_sprite_tilemap(object_tiles::TILE_DATA);
+        tiled.set_background_palettes(tile_sheet::background.palettes);
+        tiled.set_background_tilemap(0, tile_sheet::background.tiles);
+        tiled.set_sprite_palettes(object_sheet::object_sheet.palettes);
+        tiled.set_sprite_tilemap(object_sheet::object_sheet.tiles);
 
         let mut world_display = tiled.get_background().unwrap();
 
