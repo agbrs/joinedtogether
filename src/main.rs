@@ -37,7 +37,7 @@ mod object_tiles {
     pub const SNAIL_DEATH_START: u16 = 56 * 4;
 }
 
-agb_image_converter::include_gfx!("gfx/object_sheet.toml");
+agb::include_gfx!("gfx/object_sheet.toml");
 
 mod map_tiles {
 
@@ -101,7 +101,7 @@ mod map_tiles {
     }
 }
 
-agb_image_converter::include_gfx!("gfx/tile_sheet.toml");
+agb::include_gfx!("gfx/tile_sheet.toml");
 
 use agb::{
     display::{

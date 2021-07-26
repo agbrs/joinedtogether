@@ -8,7 +8,6 @@ edition = "2018"
 
 [dependencies]
 agb = { version = "0.5.0", path = "../agb/agb" }
-agb_image_converter = { version = "0.4.0", path = "../agb/agb-image-converter" }
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }

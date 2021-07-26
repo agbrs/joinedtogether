@@ -1,7 +1,7 @@
 use super::sfx::MusicBox;
 use agb::sound::mixer::Mixer;
 
-agb_image_converter::include_gfx!("gfx/splash_screens.toml");
+agb::include_gfx!("gfx/splash_screens.toml");
 
 pub enum SplashScreen {
     Start,

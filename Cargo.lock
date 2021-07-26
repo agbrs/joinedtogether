@@ -109,7 +109,6 @@ name = "joinedtogether"
 version = "0.1.0"
 dependencies = [
  "agb",
- "agb_image_converter",
  "serde",
  "serde_json",
 ]
