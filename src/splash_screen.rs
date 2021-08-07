@@ -34,8 +34,13 @@ pub fn show_splash_screen(
         entries[tile_id as usize] = tile_id;
     }
     let mut input = agb::input::ButtonController::new();
-    splash_screen_display.set_position(&entries, (30_u32, 20_u32).into(), (0, 0).into(), 0);
-    splash_screen_display.draw_full_map(&entries, (30_u32, 20_u32).into(), 0);
+    splash_screen_display.set_map(agb::display::tiled0::Map::new(
+        &entries,
+        (30_u32, 20_u32).into(),
+        0,
+    ));
+    splash_screen_display.set_position((0, 0).into());
+    splash_screen_display.commit();
     splash_screen_display.show();
     loop {
         input.update();

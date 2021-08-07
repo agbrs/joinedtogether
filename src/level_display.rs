@@ -22,10 +22,14 @@ fn num_digits_iter(mut n: u32) -> impl core::iter::Iterator<Item = u8> {
 const LEVEL_START: u16 = 12 * 28;
 const NUMBERS_START: u16 = 12 * 28 + 3;
 const HYPHEN: u16 = 12 * 28 + 11;
-const BLANK: u16 = 11 * 28;
+pub const BLANK: u16 = 11 * 28;
+
+pub fn new_map_store() -> [u16; 20] {
+    [BLANK; 20]
+}
 
 pub fn write_level(background: &mut Background, world: u32, level: u32) {
-    let mut map = [BLANK; 20];
+    let map = background.get_map().unwrap().get_mutable_store();
     let mut counter = 0;
 
     map[0] = LEVEL_START;
@@ -41,11 +45,6 @@ pub fn write_level(background: &mut Background, world: u32, level: u32) {
     map[counter] = level as u16 + NUMBERS_START - 1;
     counter += 1;
 
-    background.set_position(
-        &map,
-        (10_u32, 1_u32).into(),
-        (-(WIDTH / 2 - counter as i32 * 8 / 2), -(HEIGHT / 2 - 4)).into(),
-        BLANK,
-    );
-    background.draw_full_map(&map, (10_u32, 1_u32).into(), BLANK);
+    background.set_position((-(WIDTH / 2 - counter as i32 * 8 / 2), -(HEIGHT / 2 - 4)).into());
+    background.commit();
 }

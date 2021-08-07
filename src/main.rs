@@ -266,51 +266,42 @@ impl<'a> Entity<'a> {
     }
 }
 
-struct Map<'a> {
-    background: &'a mut Background,
-    foreground: &'a mut Background,
+struct Map<'a, 'b> {
+    background: &'a mut Background<'b>,
+    foreground: &'a mut Background<'b>,
     position: Vector2D<FixedNumberType>,
     level: &'a Level,
 }
 
-impl<'a> Map<'a> {
+impl<'a, 'b> Map<'a, 'b> {
     pub fn commit_position(&mut self) {
-        self.background.set_position(
-            self.level.foreground,
-            self.level.dimensions,
-            self.position.floor(),
-            0,
-        );
-        self.foreground.set_position(
-            self.level.background,
-            self.level.dimensions,
-            self.position.floor(),
-            0,
-        );
+        self.background.set_position(self.position.floor());
+        self.foreground.set_position(self.position.floor());
+
+        self.background.commit();
+        self.foreground.commit();
     }
 
     fn load_foreground(&mut self) {
-        self.background.set_position(
+        self.background.set_position(self.position.floor());
+        self.background.set_map(agb::display::tiled0::Map::new(
             self.level.foreground,
             self.level.dimensions,
-            self.position.floor(),
             0,
-        );
-        self.background
-            .draw_full_map(self.level.foreground, self.level.dimensions, 0);
+        ));
+        self.background.commit();
         self.background.show();
     }
 
     fn load_background(&mut self) {
-        self.foreground.set_position(
+        self.foreground.set_position(self.position.floor());
+        self.foreground.set_map(agb::display::tiled0::Map::new(
             self.level.background,
             self.level.dimensions,
-            self.position.floor(),
             0,
-        );
-        self.foreground
-            .draw_full_map(self.level.background, self.level.dimensions, 0);
+        ));
         self.foreground.set_priority(Priority::P2);
+        self.foreground.commit();
         self.foreground.show();
     }
 }
@@ -610,9 +601,9 @@ impl<'a> Player<'a> {
     }
 }
 
-struct PlayingLevel<'a> {
+struct PlayingLevel<'a, 'b> {
     timer: i32,
-    background: Map<'a>,
+    background: Map<'a, 'b>,
     input: ButtonController,
     player: Player<'a>,
 
@@ -625,12 +616,12 @@ enum UpdateState {
     Complete,
 }
 
-impl<'a> PlayingLevel<'a> {
+impl<'a, 'b> PlayingLevel<'a, 'b> {
     fn open_level(
         level: &'a Level,
         object_control: &'a ObjectControl,
-        background: &'a mut Background,
-        foreground: &'a mut Background,
+        background: &'a mut Background<'b>,
+        foreground: &'a mut Background<'b>,
         input: ButtonController,
     ) -> Self {
         let mut e: [enemies::Enemy<'a>; 16] = Default::default();
@@ -791,10 +782,16 @@ pub fn main() -> ! {
 
         tiled.set_background_palettes(tile_sheet::background.palettes);
         tiled.set_background_tilemap(0, tile_sheet::background.tiles);
-        tiled.set_sprite_palettes(object_sheet::object_sheet.palettes);
-        tiled.set_sprite_tilemap(object_sheet::object_sheet.tiles);
+        object.set_sprite_palettes(object_sheet::object_sheet.palettes);
+        object.set_sprite_tilemap(object_sheet::object_sheet.tiles);
 
         let mut world_display = tiled.get_background().unwrap();
+        let mut level_display_backing_store = level_display::new_map_store();
+        world_display.set_map(agb::display::tiled0::Map::new_mutable(
+            &mut level_display_backing_store,
+            (20_u32, 1_u32).into(),
+            level_display::BLANK,
+        ));
 
         let mut background = tiled.get_background().unwrap();
         let mut foreground = tiled.get_background().unwrap();
