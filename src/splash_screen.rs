@@ -26,7 +26,7 @@ pub fn show_splash_screen(
             tiled.set_background_palettes(&splash_screens::thanks_for_playing.palettes);
         }
     }
-    let vblank = agb.display.vblank.get();
+    let vblank = agb::interrupt::VBlank::get();
     let mut splash_screen_display = tiled.get_background().unwrap();
 
     let mut entries: [u16; 30 * 20] = [0; 30 * 20];
@@ -47,7 +47,7 @@ pub fn show_splash_screen(
         ) {
             break;
         }
-        vblank.wait_for_VBlank();
+        vblank.wait_for_vblank();
         if let Some(ref mut mixer) = mixer {
             if let Some(ref mut music_box) = music_box {
                 music_box.after_blank(mixer);

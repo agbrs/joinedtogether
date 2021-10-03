@@ -803,7 +803,7 @@ pub fn main() -> ! {
         mixer.enable();
         let mut music_box = sfx::MusicBox::new();
 
-        let vblank = agb.display.vblank.get();
+        let vblank = agb::interrupt::VBlank::get();
         let mut current_level = 0;
 
         loop {
@@ -834,7 +834,7 @@ pub fn main() -> ! {
                     _ => {}
                 };
 
-                vblank.wait_for_VBlank();
+                vblank.wait_for_vblank();
                 music_box.after_blank(&mut mixer);
                 mixer.vblank();
             }
@@ -846,7 +846,7 @@ pub fn main() -> ! {
                     UpdateState::Dead => {
                         level.dead_start();
                         while level.dead_update() {
-                            vblank.wait_for_VBlank();
+                            vblank.wait_for_vblank();
                             music_box.after_blank(&mut mixer);
                             mixer.vblank();
                         }
@@ -857,7 +857,7 @@ pub fn main() -> ! {
                         break;
                     }
                 }
-                vblank.wait_for_VBlank();
+                vblank.wait_for_vblank();
                 music_box.after_blank(&mut mixer);
                 mixer.vblank();
             }
