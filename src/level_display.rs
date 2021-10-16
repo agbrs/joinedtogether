@@ -1,4 +1,4 @@
-use agb::display::{tiled0::Background, HEIGHT, WIDTH};
+use agb::display::{background::BackgroundRegular, HEIGHT, WIDTH};
 
 fn num_digits_iter(mut n: u32) -> impl core::iter::Iterator<Item = u8> {
     let mut length = 0;
@@ -28,7 +28,7 @@ pub fn new_map_store() -> [u16; 20] {
     [BLANK; 20]
 }
 
-pub fn write_level(background: &mut Background, world: u32, level: u32) {
+pub fn write_level(background: &mut BackgroundRegular, world: u32, level: u32) {
     let map = background.get_map().unwrap().get_mutable_store();
     let mut counter = 0;
 

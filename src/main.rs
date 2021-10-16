@@ -105,8 +105,8 @@ agb::include_gfx!("gfx/tile_sheet.toml");
 
 use agb::{
     display::{
+        background::BackgroundRegular,
         object::{ObjectControl, ObjectStandard, Size},
-        tiled0::Background,
         Priority, HEIGHT, WIDTH,
     },
     input::{self, Button, ButtonController},
@@ -267,8 +267,8 @@ impl<'a> Entity<'a> {
 }
 
 struct Map<'a, 'b> {
-    background: &'a mut Background<'b>,
-    foreground: &'a mut Background<'b>,
+    background: &'a mut BackgroundRegular<'b>,
+    foreground: &'a mut BackgroundRegular<'b>,
     position: Vector2D<FixedNumberType>,
     level: &'a Level,
 }
@@ -284,7 +284,7 @@ impl<'a, 'b> Map<'a, 'b> {
 
     fn load_foreground(&mut self) {
         self.background.set_position(self.position.floor());
-        self.background.set_map(agb::display::tiled0::Map::new(
+        self.background.set_map(agb::display::background::Map::new(
             self.level.foreground,
             self.level.dimensions,
             0,
@@ -295,7 +295,7 @@ impl<'a, 'b> Map<'a, 'b> {
 
     fn load_background(&mut self) {
         self.foreground.set_position(self.position.floor());
-        self.foreground.set_map(agb::display::tiled0::Map::new(
+        self.foreground.set_map(agb::display::background::Map::new(
             self.level.background,
             self.level.dimensions,
             0,
@@ -620,8 +620,8 @@ impl<'a, 'b> PlayingLevel<'a, 'b> {
     fn open_level(
         level: &'a Level,
         object_control: &'a ObjectControl,
-        background: &'a mut Background<'b>,
-        foreground: &'a mut Background<'b>,
+        background: &'a mut BackgroundRegular<'b>,
+        foreground: &'a mut BackgroundRegular<'b>,
         input: ButtonController,
     ) -> Self {
         let mut e: [enemies::Enemy<'a>; 16] = Default::default();
@@ -785,16 +785,16 @@ pub fn main() -> ! {
         object.set_sprite_palettes(object_sheet::object_sheet.palettes);
         object.set_sprite_tilemap(object_sheet::object_sheet.tiles);
 
-        let mut world_display = tiled.get_background().unwrap();
+        let mut world_display = tiled.get_regular().unwrap();
         let mut level_display_backing_store = level_display::new_map_store();
-        world_display.set_map(agb::display::tiled0::Map::new_mutable(
+        world_display.set_map(agb::display::background::Map::new_mutable(
             &mut level_display_backing_store,
             (20_u32, 1_u32).into(),
             level_display::BLANK,
         ));
 
-        let mut background = tiled.get_background().unwrap();
-        let mut foreground = tiled.get_background().unwrap();
+        let mut background = tiled.get_regular().unwrap();
+        let mut foreground = tiled.get_regular().unwrap();
         object.enable();
 
         mixer.enable();
