@@ -18,24 +18,29 @@ pub fn show_splash_screen(
 
     match which {
         SplashScreen::Start => {
-            tiled.set_background_tilemap(0, &splash_screens::splash.tiles);
-            tiled.set_background_palettes(&splash_screens::splash.palettes);
+            tiled.set_background_tilemap(0, splash_screens::splash.tiles);
+            tiled.set_background_palettes(splash_screens::splash.palettes);
         }
         SplashScreen::End => {
-            tiled.set_background_tilemap(0, &splash_screens::thanks_for_playing.tiles);
-            tiled.set_background_palettes(&splash_screens::thanks_for_playing.palettes);
+            tiled.set_background_tilemap(0, splash_screens::thanks_for_playing.tiles);
+            tiled.set_background_palettes(splash_screens::thanks_for_playing.palettes);
         }
     }
     let vblank = agb::interrupt::VBlank::get();
-    let mut splash_screen_display = tiled.get_background().unwrap();
+    let mut splash_screen_display = tiled.get_regular().unwrap();
 
     let mut entries: [u16; 30 * 20] = [0; 30 * 20];
     for tile_id in 0..(30 * 20) {
         entries[tile_id as usize] = tile_id;
     }
     let mut input = agb::input::ButtonController::new();
-    splash_screen_display.set_position(&entries, (30_u32, 20_u32).into(), (0, 0).into(), 0);
-    splash_screen_display.draw_full_map(&entries, (30_u32, 20_u32).into(), 0);
+    splash_screen_display.set_map(agb::display::background::Map::new(
+        &entries,
+        (30_u32, 20_u32).into(),
+        0,
+    ));
+    splash_screen_display.set_position((0, 0).into());
+    splash_screen_display.commit();
     splash_screen_display.show();
     loop {
         input.update();
