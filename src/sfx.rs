@@ -1,3 +1,4 @@
+use agb::include_wav;
 use agb::sound::mixer::{Mixer, SoundChannel};
 
 mod music_data {
