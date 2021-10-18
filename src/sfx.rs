@@ -8,8 +8,8 @@ mod music_data {
     // 2. When the intro reaches approximately 11.080 seconds, trigger the main loop and let the intro finish underneath it.
     // 3. Re-trigger the main loop every time it reaches 1 minute 26.080 seconds, and let the old instance finish underneath the new one.
     pub const INTRO_MUSIC: &[u8] =
-        include_bytes!("../sfx/Otto Halmén - Sylvan Waltz (loop intro).raw");
-    pub const LOOP: &[u8] = include_bytes!("../sfx/Otto Halmén - Sylvan Waltz (loop main).raw");
+        agb::include_wav!("sfx/Otto Halmén - Sylvan Waltz (loop intro).wav");
+    pub const LOOP: &[u8] = agb::include_wav!("sfx/Otto Halmén - Sylvan Waltz (loop main).wav");
 
     // These are based on the instructions above and a frame rate of 59.73Hz
     pub const TRIGGER_MUSIC_POINT: i32 = 662;
@@ -17,24 +17,24 @@ mod music_data {
 }
 
 mod effects {
-    const WOOSH1: &[u8] = include_bytes!("../sfx/woosh1.raw");
-    const WOOSH2: &[u8] = include_bytes!("../sfx/woosh2.raw");
-    const WOOSH3: &[u8] = include_bytes!("../sfx/woosh3.raw");
+    const WOOSH1: &[u8] = agb::include_wav!("sfx/woosh1.wav");
+    const WOOSH2: &[u8] = agb::include_wav!("sfx/woosh2.wav");
+    const WOOSH3: &[u8] = agb::include_wav!("sfx/woosh3.wav");
 
     pub const WHOOSHES: &[&[u8]] = &[WOOSH1, WOOSH2, WOOSH3];
 
-    pub const CATCH: &[u8] = include_bytes!("../sfx/catch.raw");
+    pub const CATCH: &[u8] = agb::include_wav!("sfx/catch.wav");
 
-    pub const JUMP: &[u8] = include_bytes!("../sfx/jump.raw");
-    pub const LAND: &[u8] = include_bytes!("../sfx/land.raw");
+    pub const JUMP: &[u8] = agb::include_wav!("sfx/jump.wav");
+    pub const LAND: &[u8] = agb::include_wav!("sfx/land.wav");
 
-    pub const SLIME_JUMP: &[u8] = include_bytes!("../sfx/slime-jump.raw");
-    pub const SLIME_DEATH: &[u8] = include_bytes!("../sfx/slime-death.raw");
+    pub const SLIME_JUMP: &[u8] = agb::include_wav!("sfx/slime-jump.wav");
+    pub const SLIME_DEATH: &[u8] = agb::include_wav!("sfx/slime-death.wav");
 
-    pub const SNAIL_EMERGE: &[u8] = include_bytes!("../sfx/snail-emerge.raw");
-    pub const SNAIL_RETREAT: &[u8] = include_bytes!("../sfx/snail-retreat.raw");
-    pub const SNAIL_HAT_BOUNCE: &[u8] = include_bytes!("../sfx/snail-hat-bounce.raw");
-    pub const SNAIL_DEATH: &[u8] = include_bytes!("../sfx/snail-death.raw");
+    pub const SNAIL_EMERGE: &[u8] = agb::include_wav!("sfx/snail-emerge.wav");
+    pub const SNAIL_RETREAT: &[u8] = agb::include_wav!("sfx/snail-retreat.wav");
+    pub const SNAIL_HAT_BOUNCE: &[u8] = agb::include_wav!("sfx/snail-hat-bounce.wav");
+    pub const SNAIL_DEATH: &[u8] = agb::include_wav!("sfx/snail-death.wav");
 }
 
 pub struct MusicBox {
