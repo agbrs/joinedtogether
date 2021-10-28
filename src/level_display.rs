@@ -1,4 +1,4 @@
-use agb::display::{background::BackgroundRegular, HEIGHT, WIDTH};
+use agb::display::{background::BackgroundRegister, HEIGHT, WIDTH};
 
 fn num_digits_iter(mut n: u32) -> impl core::iter::Iterator<Item = u8> {
     let mut length = 0;
@@ -28,23 +28,22 @@ pub fn new_map_store() -> [u16; 20] {
     [BLANK; 20]
 }
 
-pub fn write_level(background: &mut BackgroundRegular, world: u32, level: u32) {
-    let map = background.get_map().unwrap().get_mutable_store();
+pub fn write_level(background: &mut BackgroundRegister, world: u32, level: u32) {
+    let map = background.get_block();
     let mut counter = 0;
 
-    map[0] = LEVEL_START;
-    map[1] = LEVEL_START + 1;
-    map[2] = LEVEL_START + 2;
+    map[0][0] = LEVEL_START;
+    map[0][1] = LEVEL_START + 1;
+    map[0][2] = LEVEL_START + 2;
 
     counter += 4;
 
-    map[counter] = world as u16 + NUMBERS_START - 1;
+    map[0][counter] = world as u16 + NUMBERS_START - 1;
     counter += 1;
-    map[counter] = HYPHEN;
+    map[0][counter] = HYPHEN;
     counter += 1;
-    map[counter] = level as u16 + NUMBERS_START - 1;
+    map[0][counter] = level as u16 + NUMBERS_START - 1;
     counter += 1;
 
     background.set_position((-(WIDTH / 2 - counter as i32 * 8 / 2), -(HEIGHT / 2 - 4)).into());
-    background.commit();
 }

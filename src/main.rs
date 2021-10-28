@@ -273,7 +273,7 @@ struct Map<'a, 'b> {
     level: &'a Level,
 }
 
-impl<'a, 'b> Map<'a, 'b> {
+impl<'a, 'b, 'c> Map<'a, 'b> {
     pub fn commit_position(&mut self) {
         self.background.set_position(self.position.floor());
         self.foreground.set_position(self.position.floor());
@@ -282,18 +282,17 @@ impl<'a, 'b> Map<'a, 'b> {
         self.foreground.commit();
     }
 
-    fn load_foreground(&mut self) {
+    fn load_foreground(&'c mut self) -> impl Iterator<Item = ()> + 'c {
         self.background.set_position(self.position.floor());
         self.background.set_map(agb::display::background::Map::new(
             self.level.foreground,
             self.level.dimensions,
             0,
         ));
-        self.background.commit();
-        self.background.show();
+        self.background.commit_partial()
     }
 
-    fn load_background(&mut self) {
+    fn load_background(&'c mut self) -> impl Iterator<Item = ()> + 'c {
         self.foreground.set_position(self.position.floor());
         self.foreground.set_map(agb::display::background::Map::new(
             self.level.background,
@@ -301,8 +300,7 @@ impl<'a, 'b> Map<'a, 'b> {
             0,
         ));
         self.foreground.set_priority(Priority::P2);
-        self.foreground.commit();
-        self.foreground.show();
+        self.foreground.commit_partial()
     }
 }
 
@@ -616,7 +614,7 @@ enum UpdateState {
     Complete,
 }
 
-impl<'a, 'b> PlayingLevel<'a, 'b> {
+impl<'a, 'b, 'c> PlayingLevel<'a, 'b> {
     fn open_level(
         level: &'a Level,
         object_control: &'a ObjectControl,
@@ -660,12 +658,17 @@ impl<'a, 'b> PlayingLevel<'a, 'b> {
         }
     }
 
-    fn load_1(&mut self) {
-        self.background.load_background();
+    fn load_1(&'c mut self) -> impl Iterator<Item = ()> + 'c {
+        self.background.load_background()
     }
 
-    fn load_2(&mut self) {
-        self.background.load_foreground();
+    fn load_2(&'c mut self) -> impl Iterator<Item = ()> + 'c {
+        self.background.load_foreground()
+    }
+
+    fn show_backgrounds(&mut self) {
+        self.background.background.show();
+        self.background.foreground.show();
     }
 
     fn dead_start(&mut self) {
@@ -785,13 +788,9 @@ pub fn main() -> ! {
         object.set_sprite_palettes(object_sheet::object_sheet.palettes);
         object.set_sprite_tilemap(object_sheet::object_sheet.tiles);
 
-        let mut world_display = tiled.get_regular().unwrap();
-        let mut level_display_backing_store = level_display::new_map_store();
-        world_display.set_map(agb::display::background::Map::new_mutable(
-            &mut level_display_backing_store,
-            (20_u32, 1_u32).into(),
-            level_display::BLANK,
-        ));
+        let mut world_display = tiled.get_raw_regular().unwrap();
+        world_display.clear(level_display::BLANK);
+        world_display.show();
 
         let mut background = tiled.get_regular().unwrap();
         let mut foreground = tiled.get_regular().unwrap();
@@ -808,6 +807,10 @@ pub fn main() -> ! {
                 break;
             }
 
+            vblank.wait_for_vblank();
+            music_box.after_blank(&mut mixer);
+            mixer.vblank();
+
             level_display::write_level(
                 &mut world_display,
                 current_level / 8 + 1,
@@ -816,6 +819,10 @@ pub fn main() -> ! {
 
             world_display.show();
 
+            vblank.wait_for_vblank();
+            music_box.after_blank(&mut mixer);
+            mixer.vblank();
+
             let mut level = PlayingLevel::open_level(
                 &map_tiles::LEVELS[current_level as usize],
                 &object,
@@ -823,18 +830,24 @@ pub fn main() -> ! {
                 &mut foreground,
                 agb::input::ButtonController::new(),
             );
-
-            for i in 0..60 {
-                match i {
-                    1 => level.load_1(),
-                    2 => level.load_2(),
-                    _ => {}
-                };
-
+            let mut level_load = level.load_1().step_by(24);
+            for _ in 0..30 {
                 vblank.wait_for_vblank();
                 music_box.after_blank(&mut mixer);
                 mixer.vblank();
+                level_load.next();
             }
+            level_load.count();
+            let mut level_load = level.load_2().step_by(24);
+            for _ in 0..30 {
+                vblank.wait_for_vblank();
+                music_box.after_blank(&mut mixer);
+                mixer.vblank();
+                level_load.next();
+            }
+            level_load.count();
+            level.show_backgrounds();
+
             world_display.hide();
 
             loop {
