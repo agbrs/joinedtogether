@@ -10,7 +10,9 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 
 [[package]]
 name = "agb"
-version = "0.7.0"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "105dc954f84db09e9bb378517885dc5223c0fffe1dcbba0cd3722e498110ac72"
 dependencies = [
  "agb_image_converter",
  "agb_macros",
@@ -21,6 +23,8 @@ dependencies = [
 [[package]]
 name = "agb_image_converter"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab0d6246badd0ae94dbf8516be9481f39d9e7fef4eb73baab8354036c181c346"
 dependencies = [
  "image",
  "proc-macro2",
@@ -33,6 +37,8 @@ dependencies = [
 [[package]]
 name = "agb_macros"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55c40973cf943837a761387fcd0b34d0a2681cbe328a7ee05a0da4c618d70454"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -43,6 +49,8 @@ dependencies = [
 [[package]]
 name = "agb_sound_converter"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f6238331cc0c863fc2e5da89d93debbb171fa8d939fed71f713c1cb4942b05a"
 dependencies = [
  "hound",
  "proc-macro2",
