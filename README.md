@@ -1,3 +1,5 @@
+This repository has been added as an example for the agb library, so the latest version can be found [here](https://github.com/agbrs/agb/tree/master/examples/the-hat-chooses-the-wizard).
+
 # The Hat Chooses The Wizard
 
 [![the hat chooses the wizard screenshot](screenshot.png)](https://lostimmortal.itch.io/the-hat-chooses-the-wizard)
